@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness/Macro Tracker Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #10b981;
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 15px;
+        }
+
+        .tab-button {
+            background-color: #1e293b;
+            color: #94a3b8;
+            border: 2px solid #334155;
+            padding: 12px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background-color: #334155;
+            color: #e2e8f0;
+        }
+
+        .tab-button.active {
+            background-color: #10b981;
+            color: #0f172a;
+            border-color: #10b981;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #10b981;
+            margin: 10px 0;
+        }
+
+        .kpi-label {
+            font-size: 0.85em;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            color: #10b981;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar-container {
+            background-color: #0f172a;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin: 15px 0;
+            border: 1px solid #334155;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 30px 0;
+        }
+
+        .macro-donut-container {
+            position: relative;
+            height: 350px;
+            margin: 30px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            background-color: #0f172a;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #334155;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #334155;
+        }
+
+        tr:hover {
+            background-color: #0f172a;
+        }
+
+        .exercise-card {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+
+        .exercise-details {
+            font-size: 0.95em;
+            color: #cbd5e1;
+        }
+
+        .day-section {
+            background-color: #0f172a;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+
+        .day-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 15px;
+        }
+
+        .measurement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .measurement-box {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .measurement-label {
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .measurement-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .supplement-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .supplement-item {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .supplement-name {
+            font-weight: 500;
+        }
+
+        .checkmark {
+            color: #10b981;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .water-tracker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .water-glass {
+            width: 50px;
+            height: 80px;
+            border: 2px solid #334155;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            background-color: #0f172a;
+            transition: all 0.3s ease;
+        }
+
+        .water-glass.filled {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .water-glass:hover {
+            border-color: #10b981;
+        }
+
+        .callout {
+            background-color: #0f172a;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            color: #fbbf24;
+        }
+
+        .traffic-light {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .light-green {
+            background-color: #10b981;
+        }
+
+        .light-red {
+            background-color: #ef4444;
+        }
+
+        .light-yellow {
+            background-color: #f59e0b;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .stat-target {
+            font-size: 0.8em;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .comparison-table th {
+            background-color: #0f172a;
+        }
+
+        .positive {
+            color: #10b981;
+        }
+
+        .negative {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💪 Fitness & Macro Tracker</h1>
+            <p class="subtitle">12-Week Cutting Program — 185 → 170 lbs — Built by Claude Cowork from a single prompt</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('overview')">Overview</button>
+            <button class="tab-button" onclick="showTab('macros')">Macro Breakdown</button>
+            <button class="tab-button" onclick="showTab('workouts')">Workout Split</button>
+            <button class="tab-button" onclick="showTab('measurements')">Measurements & Progress</button>
+            <button class="tab-button" onclick="showTab('supplements')">Supplements & Water</button>
+            <button class="tab-button" onclick="showTab('checkin')">Weekly Check-In</button>
+        </div>
+
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <div class="kpi-strip">
+                <div class="kpi-card">
+                    <div class="kpi-label">Current Weight</div>
+                    <div class="kpi-value">179.4 lbs</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Starting Weight</div>
+                    <div class="kpi-value">185 lbs</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Goal Weight</div>
+                    <div class="kpi-value">170 lbs</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Progress</div>
+                    <div class="kpi-value">5.6 lbs</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Weeks Completed</div>
+                    <div class="kpi-value">5 / 12</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Daily Calories</div>
+                    <div class="kpi-value">2,100</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Daily Protein</div>
+                    <div class="kpi-value">185g</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Est. Body Fat</div>
+                    <div class="kpi-value">18%</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Goal Progress</div>
+                <p style="margin-bottom: 10px;">Remaining: 9.4 lbs to goal (Week 5 of 12)</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: 37.3%;">37.3%</div>
+                </div>
+                <p style="font-size: 0.9em; color: #94a3b8; margin-top: 10px;">Weekly average loss: 1.12 lbs</p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Weight Trend (12 Weeks)</div>
+                <div class="chart-container">
+                    <canvas id="weightTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Weekly Weight Loss Average</div>
+                <div class="stat-item">
+                    <div class="stat-label">Average Loss Per Week</div>
+                    <div class="stat-value">1.12 lbs</div>
+                    <div class="stat-target">Target: 1.25 lbs/week</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MACRO BREAKDOWN TAB -->
+        <div id="macros" class="tab-content">
+            <div class="kpi-strip">
+                <div class="kpi-card">
+                    <div class="kpi-label">Daily Calories</div>
+                    <div class="kpi-value">2,100</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Protein (35%)</div>
+                    <div class="kpi-value">185g</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Carbs (40%)</div>
+                    <div class="kpi-value">210g</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Fat (25%)</div>
+                    <div class="kpi-value">58g</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Daily Macro Distribution</div>
+                <div class="macro-donut-container">
+                    <canvas id="macroChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Sample Day Breakdown (Monday)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Meal</th>
+                            <th>Time</th>
+                            <th>Foods</th>
+                            <th>Calories</th>
+                            <th>Protein (g)</th>
+                            <th>Carbs (g)</th>
+                            <th>Fat (g)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Meal 1</td>
+                            <td>7:00 AM</td>
+                            <td>Eggs, oats, banana</td>
+                            <td>520</td>
+                            <td>48</td>
+                            <td>52</td>
+                            <td>15</td>
+                        </tr>
+                        <tr>
+                            <td>Meal 2</td>
+                            <td>12:00 PM</td>
+                            <td>Chicken, rice, broccoli</td>
+                            <td>580</td>
+                            <td>52</td>
+                            <td>60</td>
+                            <td>12</td>
+                        </tr>
+                        <tr>
+                            <td>Meal 3</td>
+                            <td>3:00 PM</td>
+                            <td>Protein shake, almonds</td>
+                            <td>380</td>
+                            <td>35</td>
+                            <td>32</td>
+                            <td>14</td>
+                        </tr>
+                        <tr>
+                            <td>Meal 4</td>
+                            <td>6:30 PM</td>
+                            <td>Salmon, sweet potato, asparagus</td>
+                            <td>620</td>
+                            <td>50</td>
+                            <td>66</td>
+                            <td>17</td>
+                        </tr>
+                        <tr style="background-color: #0f172a; font-weight: bold;">
+                            <td colspan="3">Daily Total</td>
+                            <td>2,100</td>
+                            <td>185</td>
+                            <td>210</td>
+                            <td>58</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Weekly Average vs Target</div>
+                <div class="chart-container">
+                    <canvas id="weeklyMacroChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKOUT SPLIT TAB -->
+        <div id="workouts" class="tab-content">
+            <div class="card">
+                <div class="card-title">PPL (Push/Pull/Legs) 6-Day Split</div>
+
+                <div class="day-section">
+                    <div class="day-title">Day 1: Push (Monday)</div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Barbell Bench Press</div>
+                        <div class="exercise-details">4 sets x 8 reps | Target: 225 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Overhead Press (OHP)</div>
+                        <div class="exercise-details">3 sets x 10 reps | Target: 155 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Incline Dumbbell Press</div>
+                        <div class="exercise-details">3 sets x 12 reps | Target: 80 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Cable Flye</div>
+                        <div class="exercise-details">3 sets x 15 reps | Target: 70 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Tricep Pushdown (Rope)</div>
+                        <div class="exercise-details">3 sets x 12 reps | Target: 90 lbs</div>
+                    </div>
+                </div>
+
+                <div class="day-section">
+                    <div class="day-title">Day 2: Pull (Tuesday)</div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Deadlift</div>
+                        <div class="exercise-details">4 sets x 5 reps | Target: 365 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Barbell Row</div>
+                        <div class="exercise-details">4 sets x 8 reps | Target: 275 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Lat Pulldown</div>
+                        <div class="exercise-details">3 sets x 10 reps | Target: 200 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Face Pull</div>
+                        <div class="exercise-details">3 sets x 15 reps | Target: 110 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Barbell Curl</div>
+                        <div class="exercise-details">3 sets x 12 reps | Target: 95 lbs</div>
+                    </div>
+                </div>
+
+                <div class="day-section">
+                    <div class="day-title">Day 3: Legs (Wednesday)</div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Barbell Squat</div>
+                        <div class="exercise-details">4 sets x 6 reps | Target: 315 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Romanian Deadlift (RDL)</div>
+                        <div class="exercise-details">3 sets x 10 reps | Target: 295 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Leg Press</div>
+                        <div class="exercise-details">3 sets x 12 reps | Target: 495 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Leg Curl</div>
+                        <div class="exercise-details">3 sets x 12 reps | Target: 180 lbs</div>
+                    </div>
+                    <div class="exercise-card">
+                        <div class="exercise-name">Standing Calf Raise</div>
+                        <div class="exercise-details">4 sets x 15 reps | Target: 385 lbs</div>
+                    </div>
+                </div>
+
+                <div class="day-section">
+                    <div class="day-title">Day 4: Push (Thursday)</div>
+                    <p style="color: #94a3b8; margin-bottom: 0;">Repeat Day 1 Push routine</p>
+                </div>
+
+                <div class="day-section">
+                    <div class="day-title">Day 5: Pull (Friday)</div>
+                    <p style="color: #94a3b8; margin-bottom: 0;">Repeat Day 2 Pull routine</p>
+                </div>
+
+                <div class="day-section">
+                    <div class="day-title">Day 6: Legs (Saturday)</div>
+                    <p style="color: #94a3b8; margin-bottom: 0;">Repeat Day 3 Legs routine</p>
+                </div>
+
+                <div class="day-section" style="border-left-color: #a855f7;">
+                    <div class="day-title" style="color: #a855f7;">Day 7: Rest (Sunday)</div>
+                    <p style="color: #94a3b8; margin-bottom: 0;">Active recovery or complete rest</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Weekly Volume by Muscle Group</div>
+                <div class="chart-container">
+                    <canvas id="volumeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEASUREMENTS & PROGRESS TAB -->
+        <div id="measurements" class="tab-content">
+            <div class="card">
+                <div class="card-title">Current Measurements vs Starting</div>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Measurement</th>
+                            <th>Starting (Week 1)</th>
+                            <th>Current (Week 5)</th>
+                            <th>Change</th>
+                            <th>% Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Chest</td>
+                            <td>40.5 in</td>
+                            <td>39.8 in</td>
+                            <td class="negative">-0.7 in</td>
+                            <td class="negative">-1.7%</td>
+                        </tr>
+                        <tr>
+                            <td>Waist</td>
+                            <td>34.2 in</td>
+                            <td>32.9 in</td>
+                            <td class="positive">-1.3 in</td>
+                            <td class="positive">-3.8%</td>
+                        </tr>
+                        <tr>
+                            <td>Hips</td>
+                            <td>39.0 in</td>
+                            <td>38.4 in</td>
+                            <td class="positive">-0.6 in</td>
+                            <td class="positive">-1.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Left Arm</td>
+                            <td>14.2 in</td>
+                            <td>14.0 in</td>
+                            <td class="negative">-0.2 in</td>
+                            <td class="negative">-1.4%</td>
+                        </tr>
+                        <tr>
+                            <td>Left Thigh</td>
+                            <td>22.8 in</td>
+                            <td>22.3 in</td>
+                            <td class="positive">-0.5 in</td>
+                            <td class="positive">-2.2%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Measurement Tracking</div>
+                <div class="measurement-grid">
+                    <div class="measurement-box">
+                        <div class="measurement-label">Chest</div>
+                        <div class="measurement-value">39.8"</div>
+                    </div>
+                    <div class="measurement-box">
+                        <div class="measurement-label">Waist</div>
+                        <div class="measurement-value">32.9"</div>
+                    </div>
+                    <div class="measurement-box">
+                        <div class="measurement-label">Hips</div>
+                        <div class="measurement-value">38.4"</div>
+                    </div>
+                    <div class="measurement-box">
+                        <div class="measurement-label">Left Arm</div>
+                        <div class="measurement-value">14.0"</div>
+                    </div>
+                    <div class="measurement-box">
+                        <div class="measurement-label">Left Thigh</div>
+                        <div class="measurement-value">22.3"</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Body Fat % Trend</div>
+                <div class="chart-container">
+                    <canvas id="bodyfatChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Measurement Changes by Area</div>
+                <div class="chart-container">
+                    <canvas id="measurementChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">BMI Tracker</div>
+                <div class="stat-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Current BMI</div>
+                        <div class="stat-value">25.7</div>
+                        <div class="stat-target">Overweight</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Starting BMI</div>
+                        <div class="stat-value">26.5</div>
+                        <div class="stat-target">Week 1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Goal BMI</div>
+                        <div class="stat-value">24.4</div>
+                        <div class="stat-target">Normal Range</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUPPLEMENTS & WATER TAB -->
+        <div id="supplements" class="tab-content">
+            <div class="card">
+                <div class="card-title">Daily Supplement Checklist</div>
+                <div class="supplement-list">
+                    <div class="supplement-item">
+                        <div class="supplement-name">Creatine Monohydrate</div>
+                        <div style="font-size: 0.9em; color: #94a3b8;">5g</div>
+                        <div class="checkmark">✓</div>
+                    </div>
+                    <div class="supplement-item">
+                        <div class="supplement-name">Fish Oil / Omega-3</div>
+                        <div style="font-size: 0.9em; color: #94a3b8;">2g</div>
+                        <div class="checkmark">✓</div>
+                    </div>
+                    <div class="supplement-item">
+                        <div class="supplement-name">Vitamin D3</div>
+                        <div style="font-size: 0.9em; color: #94a3b8;">5000 IU</div>
+                        <div class="checkmark">✓</div>
+                    </div>
+                    <div class="supplement-item">
+                        <div class="supplement-name">Multivitamin</div>
+                        <div style="font-size: 0.9em; color: #94a3b8;">1 serving</div>
+                        <div class="checkmark">✓</div>
+                    </div>
+                    <div class="supplement-item">
+                        <div class="supplement-name">Whey Protein Powder</div>
+                        <div style="font-size: 0.9em; color: #94a3b8;">1 scoop (25g)</div>
+                        <div class="checkmark">✓</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Water Intake Tracker (Today)</div>
+                <p style="margin-bottom: 15px; color: #94a3b8;">Target: 8 glasses | Current: 6 glasses</p>
+                <div class="water-tracker">
+                    <div class="water-glass filled">💧</div>
+                    <div class="water-glass filled">💧</div>
+                    <div class="water-glass filled">💧</div>
+                    <div class="water-glass filled">💧</div>
+                    <div class="water-glass filled">💧</div>
+                    <div class="water-glass filled">💧</div>
+                    <div class="water-glass">💧</div>
+                    <div class="water-glass">💧</div>
+                </div>
+                <p style="font-size: 0.9em; color: #94a3b8; margin-top: 15px;">6 of 8 glasses (75%)</p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Weekly Supplement Adherence</div>
+                <div class="chart-container">
+                    <canvas id="adherenceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Sleep Tracking</div>
+                <div class="stat-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Average Sleep</div>
+                        <div class="stat-value">7.2h</div>
+                        <div class="stat-target">Last 7 days</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Sleep Target</div>
+                        <div class="stat-value">8.0h</div>
+                        <div class="stat-target">Per night</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Sleep Quality</div>
+                        <div class="stat-value">7.8/10</div>
+                        <div class="stat-target">Average rating</div>
+                    </div>
+                </div>
+                <div class="card" style="background-color: #0f172a; border: none; margin-top: 20px; padding: 15px;">
+                    <div class="card-title" style="margin-bottom: 10px;">Sleep Quality Trend</div>
+                    <div class="chart-container">
+                        <canvas id="sleepChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WEEKLY CHECK-IN TAB -->
+        <div id="checkin" class="tab-content">
+            <div class="card">
+                <div class="card-title">Week-by-Week Progress Log</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Week</th>
+                            <th>Weight (lbs)</th>
+                            <th>Waist (in)</th>
+                            <th>Avg Calories</th>
+                            <th>Avg Protein</th>
+                            <th>Workouts</th>
+                            <th>Cardio</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Week 1</strong></td>
+                            <td>185.0</td>
+                            <td>34.2</td>
+                            <td>2,100</td>
+                            <td>185g</td>
+                            <td>6</td>
+                            <td>2</td>
+                            <td><span class="traffic-light light-green"></span></td>
+                            <td>Starting week</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 2</strong></td>
+                            <td>183.2</td>
+                            <td>33.8</td>
+                            <td>2,100</td>
+                            <td>185g</td>
+                            <td>6</td>
+                            <td>3</td>
+                            <td><span class="traffic-light light-green"></span></td>
+                            <td>Strong start, good adherence</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 3</strong></td>
+                            <td>181.8</td>
+                            <td>33.5</td>
+                            <td>2,100</td>
+                            <td>185g</td>
+                            <td>6</td>
+                            <td>2</td>
+                            <td><span class="traffic-light light-green"></span></td>
+                            <td>Consistent progress</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 4</strong></td>
+                            <td>180.6</td>
+                            <td>33.2</td>
+                            <td>2,105</td>
+                            <td>186g</td>
+                            <td>6</td>
+                            <td>2</td>
+                            <td><span class="traffic-light light-green"></span></td>
+                            <td>On track</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 5</strong></td>
+                            <td>179.4</td>
+                            <td>32.9</td>
+                            <td>2,098</td>
+                            <td>184g</td>
+                            <td>6</td>
+                            <td>2</td>
+                            <td><span class="traffic-light light-yellow"></span></td>
+                            <td>Weight stalled — review upcoming changes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 6</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td><span class="traffic-light light-green"></span></td>
+                            <td>Projected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 7</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td></td>
+                            <td>Projected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 8</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td></td>
+                            <td>Projected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 9</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td></td>
+                            <td>Projected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 10</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td></td>
+                            <td>Projected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 11</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td></td>
+                            <td>Projected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Week 12</strong></td>
+                            <td>170.0</td>
+                            <td>31.5</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td></td>
+                            <td>Goal weight target</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="callout">
+                    <strong>Week 5 Adjustment Recommendation:</strong> Weight stalled this week at 179.4 lbs (no change from Week 4). Consider one of the following: (1) Reduce daily calories by 100 (from 2,100 to 2,000), or (2) Add one additional cardio session per week (LISS 20-30 min). Monitor progress next week before making further adjustments. Ensure adequate sleep (7-8 hours) and manage stress.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chartConfig = {
+            backgroundColor: '#1e293b',
+            textColor: '#e2e8f0',
+            gridColor: '#334155',
+            primaryColor: '#10b981',
+            secondaryColor: '#3b82f6',
+            accentColor: '#f59e0b'
+        };
+
+        Chart.defaults.color = chartConfig.textColor;
+        Chart.defaults.borderColor = chartConfig.gridColor;
+
+        function showTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+
+            contents.forEach(content => content.classList.remove('active'));
+            buttons.forEach(button => button.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 100);
+        }
+
+        // Weight Trend Chart
+        const weightTrendCtx = document.getElementById('weightTrendChart').getContext('2d');
+        new Chart(weightTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
+                datasets: [
+                    {
+                        label: 'Actual Weight',
+                        data: [185.0, 183.2, 181.8, 180.6, 179.4, null, null, null, null, null, null, null],
+                        borderColor: chartConfig.primaryColor,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: chartConfig.primaryColor,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Projected Weight',
+                        data: [null, null, null, null, 179.4, 177.9, 176.4, 174.9, 173.4, 171.9, 170.4, 170.0],
+                        borderColor: chartConfig.secondaryColor,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: chartConfig.secondaryColor,
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: 'Goal',
+                        data: [170, 170, 170, 170, 170, 170, 170, 170, 170, 170, 170, 170],
+                        borderColor: chartConfig.accentColor,
+                        borderDash: [2, 2],
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 168,
+                        max: 187,
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    },
+                    x: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    }
+                }
+            }
+        });
+
+        // Macro Distribution Donut Chart
+        const macroCtx = document.getElementById('macroChart').getContext('2d');
+        new Chart(macroCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Protein (185g)', 'Carbs (210g)', 'Fat (58g)'],
+                datasets: [{
+                    data: [35, 40, 25],
+                    backgroundColor: [
+                        chartConfig.primaryColor,
+                        chartConfig.secondaryColor,
+                        '#ef4444'
+                    ],
+                    borderColor: chartConfig.backgroundColor,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor },
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Weekly Macro Comparison Chart
+        const weeklyMacroCtx = document.getElementById('weeklyMacroChart').getContext('2d');
+        new Chart(weeklyMacroCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Protein', 'Carbs', 'Fat'],
+                datasets: [
+                    {
+                        label: 'Target',
+                        data: [185, 210, 58],
+                        backgroundColor: chartConfig.primaryColor,
+                        borderColor: chartConfig.primaryColor,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Average (This Week)',
+                        data: [184, 212, 59],
+                        backgroundColor: chartConfig.secondaryColor,
+                        borderColor: chartConfig.secondaryColor,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    },
+                    x: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    }
+                }
+            }
+        });
+
+        // Volume by Muscle Group Chart
+        const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+        new Chart(volumeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Chest', 'Back', 'Shoulders', 'Triceps', 'Biceps', 'Legs'],
+                datasets: [{
+                    label: 'Weekly Volume (sets)',
+                    data: [16, 16, 13, 6, 6, 21],
+                    backgroundColor: [
+                        '#ef4444',
+                        '#3b82f6',
+                        '#f59e0b',
+                        '#a855f7',
+                        '#06b6d4',
+                        '#10b981'
+                    ],
+                    borderRadius: 5,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    },
+                    x: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    }
+                }
+            }
+        });
+
+        // Body Fat Chart
+        const bodyfatCtx = document.getElementById('bodyfatChart').getContext('2d');
+        new Chart(bodyfatCtx, {
+            type: 'line',
+            data: {
+                labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
+                datasets: [{
+                    label: 'Body Fat %',
+                    data: [21.5, 21.0, 20.4, 19.8, 18.0, 17.5, 17.0, 16.5, 16.0, 15.5, 15.0, 14.5],
+                    borderColor: chartConfig.primaryColor,
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointBackgroundColor: chartConfig.primaryColor,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 14,
+                        max: 22,
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    },
+                    x: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    }
+                }
+            }
+        });
+
+        // Measurement Change Chart
+        const measurementCtx = document.getElementById('measurementChart').getContext('2d');
+        new Chart(measurementCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Chest', 'Waist', 'Hips', 'Arm', 'Thigh'],
+                datasets: [{
+                    label: 'Change (inches)',
+                    data: [-0.7, -1.3, -0.6, -0.2, -0.5],
+                    backgroundColor: function(context) {
+                        return context.raw < 0 ? '#10b981' : '#ef4444';
+                    },
+                    borderRadius: 5,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    },
+                    y: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    }
+                }
+            }
+        });
+
+        // Supplement Adherence Chart
+        const adherenceCtx = document.getElementById('adherenceChart').getContext('2d');
+        new Chart(adherenceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Creatine', 'Fish Oil', 'Vitamin D', 'Multivitamin', 'Protein'],
+                datasets: [{
+                    label: 'Adherence %',
+                    data: [95, 98, 100, 92, 99],
+                    backgroundColor: chartConfig.primaryColor,
+                    borderRadius: 5,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 100,
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    },
+                    y: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor }
+                    }
+                }
+            }
+        });
+
+        // Sleep Quality Trend Chart
+        const sleepCtx = document.getElementById('sleepChart').getContext('2d');
+        new Chart(sleepCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Sleep Hours',
+                        data: [6.8, 7.2, 7.5, 7.0, 7.4, 7.8, 7.1],
+                        borderColor: chartConfig.primaryColor,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: chartConfig.primaryColor,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Sleep Quality (1-10)',
+                        data: [7.0, 7.5, 7.8, 7.2, 7.9, 8.2, 7.6],
+                        borderColor: chartConfig.secondaryColor,
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: chartConfig.secondaryColor,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: chartConfig.textColor }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    },
+                    x: {
+                        ticks: { color: chartConfig.textColor },
+                        grid: { color: chartConfig.gridColor }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

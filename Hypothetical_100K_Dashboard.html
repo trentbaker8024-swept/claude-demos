@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypothetical $100K Earner — Financial Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;padding:20px}
+        .container{max-width:1600px;margin:0 auto}
+        h1{margin-bottom:6px;font-size:2rem;color:#f1f5f9}
+        .subtitle{color:#94a3b8;font-size:0.95rem;margin-bottom:20px}
+        .tab-bar{display:flex;gap:6px;margin-bottom:24px;overflow-x:auto;padding:8px 0;border-bottom:1px solid #334155;flex-wrap:wrap}
+        .tab{padding:10px 16px;background:#1e293b;color:#94a3b8;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:500;white-space:nowrap;transition:all .2s}
+        .tab:hover{background:#334155;color:#cbd5e1}
+        .tab.active{background:#3b82f6;color:#fff}
+        .panel{display:none}.panel.active{display:block}
+        .card{background:#1e293b;border-radius:8px;padding:20px;margin-bottom:16px;border:1px solid #334155}
+        .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;margin-bottom:16px}
+        .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px}
+        .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+        h2{font-size:1.4rem;margin-bottom:16px;color:#f1f5f9}
+        h3{font-size:1.05rem;margin-top:16px;margin-bottom:12px;color:#cbd5e1}
+        table{width:100%;border-collapse:collapse;margin-top:12px}
+        th{background:#0f172a;padding:10px;text-align:left;font-weight:600;color:#cbd5e1;border-bottom:2px solid #334155}
+        td{padding:10px;border-bottom:1px solid #334155}
+        tr:hover{background:#334155}
+        .badge{display:inline-block;background:#059669;color:#fff;padding:3px 8px;border-radius:4px;font-size:.75rem;margin-left:6px}
+        .badge-blue{background:#3b82f6}
+        .badge-amber{background:#d97706}
+        .badge-red{background:#dc2626}
+        .callout{background:#1e40af;border-left:4px solid #3b82f6;padding:16px;border-radius:6px;margin:16px 0;color:#dbeafe;font-size:.9rem;line-height:1.6}
+        .callout-warning{background:#7c2d12;border-left-color:#ea580c;color:#fed7aa}
+        .callout-success{background:#064e3b;border-left-color:#10b981;color:#d1fae5}
+        .summary-card{background:linear-gradient(135deg,#1e40af 0%,#1e3a8a 100%);border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid #3b82f6}
+        .summary-card h4{font-size:.85rem;color:#bfdbfe;margin-bottom:4px}
+        .summary-card .value{font-size:1.8rem;font-weight:700;color:#fff}
+        .metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+        .metric{background:#0f172a;padding:16px;border-radius:6px;border:1px solid #334155}
+        .metric-label{font-size:.85rem;color:#94a3b8;margin-bottom:6px}
+        .metric-value{font-size:1.4rem;font-weight:600;color:#10b981}
+        .metric-value.negative{color:#ef4444}
+        .metric-value.warning{color:#f59e0b}
+        .metric-value.neutral{color:#3b82f6}
+        canvas{max-height:400px}
+        .chart-container{position:relative;height:300px;margin:16px 0}
+        .waterfall-chart{display:flex;align-items:flex-end;gap:8px;height:200px;margin:20px 0}
+        .waterfall-bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;border-radius:4px;padding:8px;font-size:.75rem;text-align:center;min-height:60px}
+        .waterfall-bar.positive{background:#064e3b}
+        .waterfall-bar.negative{background:#7c2d12}
+        .waterfall-bar.neutral{background:#1e40af}
+        .waterfall-value{font-weight:700;color:#f1f5f9;margin-top:4px}
+        .dti-gauge{height:20px;background:#0f172a;border-radius:10px;overflow:hidden;margin:10px 0;border:1px solid #334155;position:relative}
+        .dti-fill{height:100%;transition:width .5s}
+        .progress-bar{height:12px;background:#0f172a;border-radius:6px;overflow:hidden;margin:6px 0;border:1px solid #334155}
+        .progress-fill{height:100%;border-radius:6px;transition:width .5s}
+        .scorecard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:16px 0}
+        .scorecard-item{background:#0f172a;padding:16px;border-radius:8px;border:1px solid #334155}
+        .scorecard-item h4{color:#cbd5e1;margin-bottom:8px;font-size:.9rem}
+        .grade{font-size:2.5rem;font-weight:700;margin:8px 0}
+        .grade.a{color:#10b981}.grade.b{color:#3b82f6}.grade.c{color:#f59e0b}.grade.d{color:#ef4444}
+        .grade-detail{font-size:.8rem;color:#94a3b8;margin-top:6px;line-height:1.4}
+        .holding-card{background:#0f172a;padding:14px;border-radius:8px;border:1px solid #334155;margin-bottom:10px}
+        .holding-card .name{font-weight:600;color:#f1f5f9;margin-bottom:4px}
+        .holding-card .ticker{color:#3b82f6;font-size:.85rem}
+        .holding-card .row{display:flex;justify-content:space-between;padding:4px 0;font-size:.85rem}
+        .holding-card .row .label{color:#94a3b8}
+        .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600;margin-left:6px}
+        .tag-green{background:#064e3b;color:#6ee7b7}
+        .tag-red{background:#7c2d12;color:#fca5a5}
+        .tag-blue{background:#1e3a8a;color:#93c5fd}
+        .goal-card{background:#0f172a;border-radius:8px;padding:16px;border:1px solid #334155;margin-bottom:12px}
+        .goal-card h4{color:#f1f5f9;margin-bottom:4px;font-size:.95rem}
+        .goal-card .detail{color:#94a3b8;font-size:.8rem;margin-bottom:8px}
+        .goal-amount{display:flex;justify-content:space-between;font-size:.85rem;margin-top:6px}
+        .goal-amount .saved{color:#10b981;font-weight:600}
+        .goal-amount .target{color:#94a3b8}
+        .scenario-toggle{display:flex;gap:8px;margin:16px 0}
+        .scenario-btn{padding:8px 16px;border:1px solid #334155;background:#0f172a;color:#94a3b8;border-radius:6px;cursor:pointer;font-size:.85rem;transition:all .2s}
+        .scenario-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+        .debt-row{display:flex;align-items:center;gap:12px;padding:12px;background:#0f172a;border-radius:6px;margin-bottom:8px;border:1px solid #334155}
+        .debt-row .info{flex:1}
+        .debt-row .name{font-weight:600;color:#f1f5f9;font-size:.9rem}
+        .debt-row .sub{color:#94a3b8;font-size:.8rem;margin-top:2px}
+        .debt-row .amount{font-weight:700;font-size:1.1rem;color:#ef4444;min-width:100px;text-align:right}
+        .monthly-timeline{display:flex;gap:4px;margin:12px 0;overflow-x:auto}
+        .month-col{flex:1;min-width:60px;text-align:center;font-size:.7rem}
+        .month-col .bar{margin:4px auto;border-radius:3px;min-height:4px;width:80%;transition:height .3s}
+        .month-col .lbl{color:#94a3b8;margin-bottom:4px}
+        .month-col .val{color:#cbd5e1;margin-top:4px;font-weight:600}
+        .kpi-strip{display:flex;gap:12px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+        .kpi{background:linear-gradient(135deg,#1e293b,#1e293b);border:1px solid #334155;border-radius:8px;padding:14px 18px;min-width:170px;flex-shrink:0}
+        .kpi .label{font-size:.75rem;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+        .kpi .val{font-size:1.3rem;font-weight:700;color:#f1f5f9}
+        .kpi .change{font-size:.75rem;margin-top:4px}
+        .kpi .change.up{color:#10b981}
+        .kpi .change.down{color:#ef4444}
+        @media(max-width:768px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.tab{font-size:.75rem;padding:8px 10px}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Hypothetical Financial Dashboard</h1>
+    <div class="subtitle">$100,000/yr Gross Income — Single Earner, Age 30 — Built by Claude Cowork to demonstrate capability</div>
+
+    <div class="tab-bar">
+        <button class="tab active" onclick="showTab('overview')">Overview</button>
+        <button class="tab" onclick="showTab('income')">Income & Taxes</button>
+        <button class="tab" onclick="showTab('spending')">Spending</button>
+        <button class="tab" onclick="showTab('bills')">Monthly Bills</button>
+        <button class="tab" onclick="showTab('investments')">Investments</button>
+        <button class="tab" onclick="showTab('networth')">Net Worth</button>
+        <button class="tab" onclick="showTab('debt')">Debt Payoff</button>
+        <button class="tab" onclick="showTab('goals')">Goals & Savings</button>
+        <button class="tab" onclick="showTab('retirement')">Retirement</button>
+        <button class="tab" onclick="showTab('scenarios')">What-If Scenarios</button>
+        <button class="tab" onclick="showTab('scorecard')">Financial Scorecard</button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 1: OVERVIEW -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="overview" class="panel active">
+        <div class="kpi-strip">
+            <div class="kpi"><div class="label">Annual Gross</div><div class="val">$100,000</div><div class="change up">+6% YoY</div></div>
+            <div class="kpi"><div class="label">Monthly Take-Home</div><div class="val">$6,250</div><div class="change up">After tax & benefits</div></div>
+            <div class="kpi"><div class="label">Net Worth</div><div class="val" style="color:#10b981">$47,350</div><div class="change up">+$18.2K YTD</div></div>
+            <div class="kpi"><div class="label">Savings Rate</div><div class="val" style="color:#3b82f6">22%</div><div class="change up">Target: 20%</div></div>
+            <div class="kpi"><div class="label">Total Debt</div><div class="val" style="color:#ef4444">$38,200</div><div class="change down">-$4.1K YTD</div></div>
+            <div class="kpi"><div class="label">Emergency Fund</div><div class="val" style="color:#f59e0b">3.2 mo</div><div class="change up">Target: 6 months</div></div>
+        </div>
+
+        <div class="grid2">
+            <div class="card">
+                <h2>Monthly Cash Flow</h2>
+                <div class="waterfall-chart">
+                    <div class="waterfall-bar neutral"><div>Take-Home</div><div class="waterfall-value">$6,250</div></div>
+                    <div class="waterfall-bar negative"><div>Fixed Bills</div><div class="waterfall-value">-$2,415</div></div>
+                    <div class="waterfall-bar negative"><div>Variable</div><div class="waterfall-value">-$1,460</div></div>
+                    <div class="waterfall-bar negative"><div>Investing</div><div class="waterfall-value">-$1,375</div></div>
+                    <div class="waterfall-bar positive"><div>Remaining</div><div class="waterfall-value">$1,000</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Net Worth Trend (12 Months)</h2>
+                <div class="chart-container"><canvas id="nwTrendChart"></canvas></div>
+            </div>
+        </div>
+        <div class="grid2">
+            <div class="card">
+                <h2>Spending vs. Income (Monthly)</h2>
+                <div class="chart-container"><canvas id="overviewSpendChart"></canvas></div>
+            </div>
+            <div class="card">
+                <h2>Asset Allocation</h2>
+                <div class="chart-container"><canvas id="overviewAllocChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 2: INCOME & TAXES -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="income" class="panel">
+        <div class="card">
+            <h2>Income Breakdown — $100,000 Gross</h2>
+            <div class="grid2">
+                <div>
+                    <table>
+                        <thead><tr><th>Item</th><th>Annual</th><th>Monthly</th></tr></thead>
+                        <tbody>
+                            <tr><td>Gross Salary</td><td>$100,000</td><td>$8,333</td></tr>
+                            <tr><td style="color:#ef4444">Federal Tax (22% bracket)</td><td style="color:#ef4444">-$14,260</td><td style="color:#ef4444">-$1,188</td></tr>
+                            <tr><td style="color:#ef4444">State Tax (TX: 0%)</td><td style="color:#ef4444">$0</td><td style="color:#ef4444">$0</td></tr>
+                            <tr><td style="color:#ef4444">FICA (Social Security + Medicare)</td><td style="color:#ef4444">-$7,650</td><td style="color:#ef4444">-$638</td></tr>
+                            <tr><td style="color:#ef4444">Health/Dental/Vision</td><td style="color:#ef4444">-$3,090</td><td style="color:#ef4444">-$258</td></tr>
+                            <tr style="background:#0f172a;font-weight:700"><td>Net Take-Home</td><td style="color:#10b981">$75,000</td><td style="color:#10b981">$6,250</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="callout" style="margin-top:16px"><strong>Effective Tax Rate:</strong> 21.9% — Living in Texas saves ~$5K/yr vs. a 5% state income tax state.</div>
+                </div>
+                <div>
+                    <div class="chart-container"><canvas id="taxChart"></canvas></div>
+                    <div class="metric-row" style="margin-top:16px">
+                        <div class="metric"><div class="metric-label">Effective Tax Rate</div><div class="metric-value warning">21.9%</div></div>
+                        <div class="metric"><div class="metric-label">Take-Home %</div><div class="metric-value">75.0%</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 3: SPENDING -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="spending" class="panel">
+        <div class="card">
+            <h2>Monthly Spending Breakdown — $3,875/mo</h2>
+            <div class="grid2">
+                <div><div class="chart-container"><canvas id="spendPie"></canvas></div></div>
+                <div><div class="chart-container"><canvas id="spendBar"></canvas></div></div>
+            </div>
+            <table>
+                <thead><tr><th>Category</th><th>Monthly</th><th>Annual</th><th>% of Take-Home</th></tr></thead>
+                <tbody>
+                    <tr><td colspan="4" style="font-weight:700;background:#0f172a;color:#3b82f6">FIXED BILLS ($2,415/mo)</td></tr>
+                    <tr><td>Rent (1BR apartment)</td><td>$1,350</td><td>$16,200</td><td>21.6%</td></tr>
+                    <tr><td>Car Payment (2022 Honda Civic)</td><td>$420</td><td>$5,040</td><td>6.7%</td></tr>
+                    <tr><td>Car Insurance (Progressive)</td><td>$165</td><td>$1,980</td><td>2.6%</td></tr>
+                    <tr><td>Utilities (Electric/Water/Internet)</td><td>$210</td><td>$2,520</td><td>3.4%</td></tr>
+                    <tr><td>Phone (T-Mobile)</td><td>$85</td><td>$1,020</td><td>1.4%</td></tr>
+                    <tr><td>Subscriptions (Netflix/Spotify/iCloud)</td><td>$45</td><td>$540</td><td>0.7%</td></tr>
+                    <tr><td>Gym (Lifetime)</td><td>$80</td><td>$960</td><td>1.3%</td></tr>
+                    <tr><td>Renter's Insurance</td><td>$20</td><td>$240</td><td>0.3%</td></tr>
+                    <tr><td>Pet Insurance (dog)</td><td>$40</td><td>$480</td><td>0.6%</td></tr>
+                    <tr><td colspan="4" style="font-weight:700;background:#0f172a;color:#f59e0b">VARIABLE ($1,460/mo)</td></tr>
+                    <tr><td>Groceries</td><td>$500</td><td>$6,000</td><td>8.0%</td></tr>
+                    <tr><td>Dining Out</td><td>$350</td><td>$4,200</td><td>5.6%</td></tr>
+                    <tr><td>Gas</td><td>$150</td><td>$1,800</td><td>2.4%</td></tr>
+                    <tr><td>Shopping / Personal</td><td>$250</td><td>$3,000</td><td>4.0%</td></tr>
+                    <tr><td>Misc / Fun</td><td>$210</td><td>$2,520</td><td>3.4%</td></tr>
+                    <tr style="font-weight:700;background:#0f172a"><td>TOTAL SPENDING</td><td>$3,875</td><td>$46,500</td><td>62.0%</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 4: MONTHLY BILLS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="bills" class="panel">
+        <div class="card">
+            <h2>Fixed Monthly Bills — $2,415/mo</h2>
+            <div class="grid2">
+                <div>
+                    <table>
+                        <thead><tr><th>Bill</th><th>Due Date</th><th>Amount</th><th>Auto-Pay?</th></tr></thead>
+                        <tbody>
+                            <tr><td>Rent</td><td>1st</td><td>$1,350</td><td><span class="badge">Yes</span></td></tr>
+                            <tr><td>Car Payment</td><td>15th</td><td>$420</td><td><span class="badge">Yes</span></td></tr>
+                            <tr><td>Utilities</td><td>18th</td><td>$210</td><td><span class="badge-amber badge">Varies</span></td></tr>
+                            <tr><td>Car Insurance</td><td>5th</td><td>$165</td><td><span class="badge">Yes</span></td></tr>
+                            <tr><td>Phone</td><td>22nd</td><td>$85</td><td><span class="badge">Yes</span></td></tr>
+                            <tr><td>Gym</td><td>1st</td><td>$80</td><td><span class="badge">Yes</span></td></tr>
+                            <tr><td>Subscriptions</td><td>Various</td><td>$45</td><td><span class="badge">Yes</span></td></tr>
+                            <tr><td>Pet Insurance</td><td>10th</td><td>$40</td><td><span class="badge">Yes</span></td></tr>
+                            <tr><td>Renter's Insurance</td><td>1st</td><td>$20</td><td><span class="badge">Yes</span></td></tr>
+                            <tr style="font-weight:700;background:#0f172a"><td>TOTAL</td><td></td><td>$2,415</td><td></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <div class="chart-container"><canvas id="billsDonut"></canvas></div>
+                </div>
+            </div>
+            <h3>Cash Flow Waterfall (Monthly)</h3>
+            <div class="waterfall-chart">
+                <div class="waterfall-bar neutral"><div>Take-Home</div><div class="waterfall-value">$6,250</div></div>
+                <div class="waterfall-bar negative"><div>Rent</div><div class="waterfall-value">-$1,350</div></div>
+                <div class="waterfall-bar negative"><div>Car + Ins</div><div class="waterfall-value">-$585</div></div>
+                <div class="waterfall-bar negative"><div>Utils + Phone</div><div class="waterfall-value">-$295</div></div>
+                <div class="waterfall-bar negative"><div>Other Fixed</div><div class="waterfall-value">-$185</div></div>
+                <div class="waterfall-bar negative"><div>Variable</div><div class="waterfall-value">-$1,460</div></div>
+                <div class="waterfall-bar negative"><div>Investing</div><div class="waterfall-value">-$1,375</div></div>
+                <div class="waterfall-bar positive"><div>Buffer</div><div class="waterfall-value">$1,000</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 5: INVESTMENTS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="investments" class="panel">
+        <div class="card">
+            <h2>Investment Portfolio — $62,350 Total</h2>
+            <div class="metric-row">
+                <div class="metric"><div class="metric-label">Total Value</div><div class="metric-value">$62,350</div></div>
+                <div class="metric"><div class="metric-label">YTD Return</div><div class="metric-value">+8.4%</div></div>
+                <div class="metric"><div class="metric-label">Monthly Contributions</div><div class="metric-value neutral">$1,375</div></div>
+                <div class="metric"><div class="metric-label">Cost Basis</div><div class="metric-value neutral">$54,800</div></div>
+                <div class="metric"><div class="metric-label">Unrealized Gain</div><div class="metric-value">+$7,550</div></div>
+            </div>
+
+            <div class="grid2">
+                <div>
+                    <h3>Account Breakdown</h3>
+                    <div class="holding-card">
+                        <div class="name">401(k) — Fidelity <span class="tag tag-green">Tax-Deferred</span></div>
+                        <div class="row"><span class="label">Balance</span><span style="color:#10b981;font-weight:600">$32,500</span></div>
+                        <div class="row"><span class="label">Monthly Contribution</span><span>$833 (10% + 4% match)</span></div>
+                        <div class="row"><span class="label">Holdings</span><span>FXAIX (S&P 500), FXNAX (Bonds)</span></div>
+                        <div class="row"><span class="label">Allocation</span><span>85% Stock / 15% Bond</span></div>
+                        <div class="row"><span class="label">YTD Return</span><span style="color:#10b981">+9.2%</span></div>
+                    </div>
+                    <div class="holding-card">
+                        <div class="name">Roth IRA — Schwab <span class="tag tag-green">Tax-Free Growth</span></div>
+                        <div class="row"><span class="label">Balance</span><span style="color:#10b981;font-weight:600">$14,200</span></div>
+                        <div class="row"><span class="label">Monthly Contribution</span><span>$292 ($3,500/yr of $7K max)</span></div>
+                        <div class="row"><span class="label">Holdings</span><span>VTI, VXUS, BND</span></div>
+                        <div class="row"><span class="label">Allocation</span><span>70% US / 20% Intl / 10% Bond</span></div>
+                        <div class="row"><span class="label">YTD Return</span><span style="color:#10b981">+7.8%</span></div>
+                    </div>
+                    <div class="holding-card">
+                        <div class="name">Brokerage — Robinhood <span class="tag tag-blue">Taxable</span></div>
+                        <div class="row"><span class="label">Balance</span><span style="color:#10b981;font-weight:600">$8,150</span></div>
+                        <div class="row"><span class="label">Monthly Contribution</span><span>$250</span></div>
+                        <div class="row"><span class="label">Holdings</span><span>AAPL, NVDA, VOO, MSFT</span></div>
+                        <div class="row"><span class="label">YTD Return</span><span style="color:#10b981">+11.3%</span></div>
+                    </div>
+                    <div class="holding-card">
+                        <div class="name">Crypto — Coinbase <span class="tag tag-red">High Risk</span></div>
+                        <div class="row"><span class="label">Balance</span><span style="color:#f59e0b;font-weight:600">$7,500</span></div>
+                        <div class="row"><span class="label">Monthly DCA</span><span>$0 (paused)</span></div>
+                        <div class="row"><span class="label">Holdings</span><span>BTC (65%), ETH (25%), SOL (10%)</span></div>
+                        <div class="row"><span class="label">YTD Return</span><span style="color:#10b981">+14.6%</span></div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Portfolio Allocation</h3>
+                    <div class="chart-container"><canvas id="investAllocChart"></canvas></div>
+                    <h3>Growth Over Time</h3>
+                    <div class="chart-container"><canvas id="investGrowthChart"></canvas></div>
+                </div>
+            </div>
+
+            <h3>Individual Stock Holdings (Brokerage)</h3>
+            <table>
+                <thead><tr><th>Ticker</th><th>Shares</th><th>Avg Cost</th><th>Current</th><th>Value</th><th>Gain/Loss</th><th>% Return</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>VOO</strong></td><td>8</td><td>$438</td><td>$502</td><td>$4,016</td><td style="color:#10b981">+$512</td><td style="color:#10b981">+14.6%</td></tr>
+                    <tr><td><strong>AAPL</strong></td><td>6</td><td>$178</td><td>$208</td><td>$1,248</td><td style="color:#10b981">+$180</td><td style="color:#10b981">+16.9%</td></tr>
+                    <tr><td><strong>NVDA</strong></td><td>10</td><td>$118</td><td>$142</td><td>$1,420</td><td style="color:#10b981">+$240</td><td style="color:#10b981">+20.3%</td></tr>
+                    <tr><td><strong>MSFT</strong></td><td>3</td><td>$410</td><td>$489</td><td>$1,467</td><td style="color:#10b981">+$237</td><td style="color:#10b981">+19.3%</td></tr>
+                    <tr style="font-weight:700;background:#0f172a"><td>TOTAL</td><td></td><td></td><td></td><td>$8,151</td><td style="color:#10b981">+$1,169</td><td style="color:#10b981">+16.7%</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 6: NET WORTH -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="networth" class="panel">
+        <div class="card">
+            <h2>Net Worth Snapshot — March 2026</h2>
+            <div class="grid2">
+                <div>
+                    <h3 style="color:#10b981">Assets: $85,550</h3>
+                    <table>
+                        <tr><td>Checking (Chase)</td><td>$3,200</td></tr>
+                        <tr><td>Savings / Emergency Fund (HYSA)</td><td>$12,500</td></tr>
+                        <tr><td>401(k)</td><td>$32,500</td></tr>
+                        <tr><td>Roth IRA</td><td>$14,200</td></tr>
+                        <tr><td>Brokerage</td><td>$8,150</td></tr>
+                        <tr><td>Crypto</td><td>$7,500</td></tr>
+                        <tr><td>Car Value (2022 Civic)</td><td>$7,500</td></tr>
+                        <tr style="font-weight:700;background:#0f172a;border-top:2px solid #334155"><td>TOTAL ASSETS</td><td style="color:#10b981">$85,550</td></tr>
+                    </table>
+
+                    <h3 style="margin-top:20px;color:#ef4444">Liabilities: $38,200</h3>
+                    <table>
+                        <tr><td>Car Loan (3.9%, 48 mo)</td><td>$15,800</td></tr>
+                        <tr><td>Student Loans (5.5%)</td><td>$18,400</td></tr>
+                        <tr><td>Credit Card (Chase Sapphire)</td><td>$2,800</td></tr>
+                        <tr><td>Credit Card (Amex)</td><td>$1,200</td></tr>
+                        <tr style="font-weight:700;background:#0f172a;border-top:2px solid #334155"><td>TOTAL LIABILITIES</td><td style="color:#ef4444">$38,200</td></tr>
+                    </table>
+
+                    <div style="margin-top:20px;padding:16px;background:#064e3b;border-radius:6px;border-left:4px solid #10b981">
+                        <div style="color:#d1fae5;font-size:.85rem;margin-bottom:4px">NET WORTH</div>
+                        <div style="font-size:2rem;font-weight:700;color:#10b981">+$47,350</div>
+                        <div style="color:#d1fae5;font-size:.8rem;margin-top:6px">Up $18,200 from January 2025</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="chart-container"><canvas id="nwPieChart"></canvas></div>
+                    <div class="chart-container"><canvas id="nwAssetsLiab"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 7: DEBT PAYOFF -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="debt" class="panel">
+        <div class="card">
+            <h2>Debt Payoff Tracker — $38,200 Total</h2>
+            <div class="metric-row">
+                <div class="metric"><div class="metric-label">Total Debt</div><div class="metric-value negative">$38,200</div></div>
+                <div class="metric"><div class="metric-label">Monthly Payments</div><div class="metric-value warning">$1,110</div></div>
+                <div class="metric"><div class="metric-label">Avg Interest Rate</div><div class="metric-value warning">4.7%</div></div>
+                <div class="metric"><div class="metric-label">Debt-Free Date (current pace)</div><div class="metric-value neutral">Oct 2029</div></div>
+            </div>
+
+            <h3>Debt Breakdown (Avalanche Order — Highest Interest First)</h3>
+            <div class="debt-row">
+                <div class="info">
+                    <div class="name">Student Loans <span class="tag tag-red">5.5% APR</span></div>
+                    <div class="sub">Federal — $350/mo min payment — 52 months remaining</div>
+                    <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:54%;background:#ef4444"></div></div>
+                    <div style="font-size:.75rem;color:#94a3b8">$21,600 paid of $40,000 original</div>
+                </div>
+                <div class="amount">$18,400</div>
+            </div>
+            <div class="debt-row">
+                <div class="info">
+                    <div class="name">Car Loan <span class="tag tag-blue">3.9% APR</span></div>
+                    <div class="sub">2022 Honda Civic — $420/mo — 38 months remaining</div>
+                    <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:44%;background:#3b82f6"></div></div>
+                    <div style="font-size:.75rem;color:#94a3b8">$12,200 paid of $28,000 original</div>
+                </div>
+                <div class="amount">$15,800</div>
+            </div>
+            <div class="debt-row">
+                <div class="info">
+                    <div class="name">Chase Sapphire <span class="tag tag-red">21.99% APR</span></div>
+                    <div class="sub">$240/mo payment — Paying aggressively</div>
+                    <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:72%;background:#ef4444"></div></div>
+                    <div style="font-size:.75rem;color:#94a3b8">$7,200 paid of $10,000 original</div>
+                </div>
+                <div class="amount">$2,800</div>
+            </div>
+            <div class="debt-row">
+                <div class="info">
+                    <div class="name">Amex Blue Cash <span class="tag tag-red">19.49% APR</span></div>
+                    <div class="sub">$100/mo payment — Paying aggressively</div>
+                    <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:76%;background:#f59e0b"></div></div>
+                    <div style="font-size:.75rem;color:#94a3b8">$3,800 paid of $5,000 original</div>
+                </div>
+                <div class="amount">$1,200</div>
+            </div>
+
+            <div class="callout" style="margin-top:16px">
+                <strong>Strategy:</strong> Avalanche method — attack the 21.99% Chase card first ($240/mo), then roll that payment into the Amex. Credit cards gone by September 2026. Then accelerate student loans.
+            </div>
+
+            <h3>Payoff Timeline</h3>
+            <div class="chart-container"><canvas id="debtChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 8: GOALS & SAVINGS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="goals" class="panel">
+        <div class="card">
+            <h2>Financial Goals Tracker</h2>
+            <div class="grid2">
+                <div>
+                    <div class="goal-card">
+                        <h4>Emergency Fund (6 Months)</h4>
+                        <div class="detail">Target: $23,250 (6x monthly spend) — Currently at 3.2 months</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:54%;background:#f59e0b"></div></div>
+                        <div class="goal-amount"><span class="saved">$12,500 saved</span><span class="target">$23,250 target</span></div>
+                    </div>
+                    <div class="goal-card">
+                        <h4>House Down Payment (20%)</h4>
+                        <div class="detail">Target: $70,000 for a $350K home — Saving $500/mo in HYSA</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:18%;background:#3b82f6"></div></div>
+                        <div class="goal-amount"><span class="saved">$12,500 saved</span><span class="target">$70,000 target</span></div>
+                    </div>
+                    <div class="goal-card">
+                        <h4>Roth IRA — Max 2026</h4>
+                        <div class="detail">Contributing $292/mo — On track to hit $3,500 of $7,000 max this year</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:25%;background:#10b981"></div></div>
+                        <div class="goal-amount"><span class="saved">$876 contributed YTD</span><span class="target">$3,500 goal</span></div>
+                    </div>
+                    <div class="goal-card">
+                        <h4>Vacation Fund (Japan Trip)</h4>
+                        <div class="detail">Target: $5,000 — Trip planned for November 2026</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:36%;background:#a855f7"></div></div>
+                        <div class="goal-amount"><span class="saved">$1,800 saved</span><span class="target">$5,000 target</span></div>
+                    </div>
+                    <div class="goal-card">
+                        <h4>Kill Credit Card Debt</h4>
+                        <div class="detail">$4,000 remaining — Target: Sept 2026 payoff</div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:73%;background:#ef4444"></div></div>
+                        <div class="goal-amount"><span class="saved">$11,000 paid off</span><span class="target">$15,000 original</span></div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Goal Progress Overview</h3>
+                    <div class="chart-container"><canvas id="goalsChart"></canvas></div>
+                    <div class="callout-success" style="margin-top:16px"><strong>On Track:</strong> Roth IRA contributions, credit card payoff, vacation fund.<br><strong>Needs Attention:</strong> Emergency fund at 54% — consider redirecting CC payment after Sept payoff.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 9: RETIREMENT -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="retirement" class="panel">
+        <div class="card">
+            <h2>Retirement Projection — Age 30 to 65</h2>
+            <div class="metric-row">
+                <div class="metric"><div class="metric-label">Current Retirement Savings</div><div class="metric-value">$46,700</div></div>
+                <div class="metric"><div class="metric-label">Monthly Contributions</div><div class="metric-value neutral">$1,125</div></div>
+                <div class="metric"><div class="metric-label">Employer Match</div><div class="metric-value">$333/mo</div></div>
+                <div class="metric"><div class="metric-label">Projected at 65 (7% return)</div><div class="metric-value">$2.1M</div></div>
+                <div class="metric"><div class="metric-label">Projected at 65 (9% return)</div><div class="metric-value">$3.4M</div></div>
+            </div>
+
+            <div class="grid2">
+                <div>
+                    <h3>Projection: 7% vs 9% Annual Return</h3>
+                    <div class="chart-container"><canvas id="retireChart"></canvas></div>
+                </div>
+                <div>
+                    <h3>Retirement Account Split</h3>
+                    <div class="chart-container"><canvas id="retireSplitChart"></canvas></div>
+                    <div class="callout" style="margin-top:16px">
+                        <strong>Key Assumptions:</strong><br>
+                        • 3% annual salary increase<br>
+                        • 10% 401(k) contribution + 4% employer match<br>
+                        • Roth IRA maxed at $7,000/yr (increases with inflation)<br>
+                        • Social Security estimated at $2,800/mo at 67<br>
+                        • 4% safe withdrawal rate
+                    </div>
+                </div>
+            </div>
+
+            <h3>Retirement Readiness</h3>
+            <table>
+                <thead><tr><th>Retire At</th><th>Portfolio (7%)</th><th>Monthly Income (4% Rule)</th><th>+ Social Security</th><th>vs. Current Spending</th></tr></thead>
+                <tbody>
+                    <tr><td>Age 55</td><td>$890,000</td><td>$2,967</td><td>$2,967</td><td style="color:#ef4444">Shortfall: -$908/mo</td></tr>
+                    <tr><td>Age 60</td><td>$1,420,000</td><td>$4,733</td><td>$4,733</td><td style="color:#10b981">Surplus: +$858/mo</td></tr>
+                    <tr><td style="font-weight:700">Age 65</td><td style="font-weight:700">$2,100,000</td><td style="font-weight:700">$7,000</td><td style="font-weight:700;color:#10b981">$9,800</td><td style="color:#10b981;font-weight:700">Surplus: +$5,925/mo</td></tr>
+                    <tr><td>Age 67</td><td>$2,450,000</td><td>$8,167</td><td>$10,967</td><td style="color:#10b981">Surplus: +$7,092/mo</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 10: WHAT-IF SCENARIOS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="scenarios" class="panel">
+        <div class="card">
+            <h2>What-If Scenarios</h2>
+            <p style="color:#94a3b8;margin-bottom:16px">Click a scenario to see how it changes your financial picture.</p>
+
+            <div class="scenario-toggle" id="scenarioBtns">
+                <button class="scenario-btn active" onclick="showScenario('raise')">$120K Salary</button>
+                <button class="scenario-btn" onclick="showScenario('sidehustle')">$15K Side Hustle</button>
+                <button class="scenario-btn" onclick="showScenario('house')">Buy $350K House</button>
+                <button class="scenario-btn" onclick="showScenario('aggressive')">Aggressive Savings</button>
+            </div>
+
+            <div id="scenario-raise" class="scenario-panel">
+                <div class="grid3">
+                    <div class="summary-card"><h4>New Gross</h4><div class="value">$120,000</div></div>
+                    <div class="summary-card"><h4>New Take-Home</h4><div class="value">$7,350/mo</div></div>
+                    <div class="summary-card"><h4>Extra Monthly</h4><div class="value" style="color:#10b981">+$1,100</div></div>
+                </div>
+                <div class="callout-success"><strong>Impact:</strong> $1,100/mo extra. If invested at 8%, that's an additional $572,000 by age 65. Alternatively: emergency fund full in 10 months, credit cards paid off in 4 months, or bump 401(k) to 15%.</div>
+                <div class="chart-container"><canvas id="scenarioChart1"></canvas></div>
+            </div>
+            <div id="scenario-sidehustle" class="scenario-panel" style="display:none">
+                <div class="grid3">
+                    <div class="summary-card"><h4>Side Hustle (Annual)</h4><div class="value">$15,000</div></div>
+                    <div class="summary-card"><h4>After Tax (~25%)</h4><div class="value">$937/mo</div></div>
+                    <div class="summary-card"><h4>Total Take-Home</h4><div class="value" style="color:#10b981">$7,187/mo</div></div>
+                </div>
+                <div class="callout"><strong>Impact:</strong> $937/mo extra after self-employment tax. Best use: max Roth IRA ($7K), kill credit cards fast, then funnel the rest into the house down payment fund. Could reach $70K down payment goal 2 years sooner.</div>
+                <div class="chart-container"><canvas id="scenarioChart2"></canvas></div>
+            </div>
+            <div id="scenario-house" class="scenario-panel" style="display:none">
+                <div class="grid3">
+                    <div class="summary-card"><h4>Home Price</h4><div class="value">$350,000</div></div>
+                    <div class="summary-card"><h4>Monthly PITI</h4><div class="value" style="color:#f59e0b">$2,480</div></div>
+                    <div class="summary-card"><h4>DTI Ratio</h4><div class="value" style="color:#f59e0b">38.6%</div></div>
+                </div>
+                <table>
+                    <thead><tr><th>Down Payment</th><th>Loan Amount</th><th>P&I (6.5%)</th><th>Tax</th><th>Insurance</th><th>PMI</th><th>Total</th><th>Front DTI</th></tr></thead>
+                    <tbody>
+                        <tr><td>5% ($17.5K)</td><td>$332,500</td><td>$2,102</td><td>$292</td><td>$150</td><td>$166</td><td style="color:#ef4444">$2,710</td><td style="color:#ef4444">32.5%</td></tr>
+                        <tr><td>10% ($35K)</td><td>$315,000</td><td>$1,991</td><td>$292</td><td>$150</td><td>$118</td><td style="color:#f59e0b">$2,551</td><td style="color:#f59e0b">30.6%</td></tr>
+                        <tr style="font-weight:700"><td>20% ($70K)</td><td>$280,000</td><td>$1,770</td><td>$292</td><td>$150</td><td>$0</td><td style="color:#10b981">$2,212</td><td style="color:#10b981">26.5%</td></tr>
+                    </tbody>
+                </table>
+                <div class="callout-warning" style="margin-top:16px"><strong>Reality Check:</strong> At 5% down, you'd have $540/mo less buffer than renting. The 20% down payment ($70K) eliminates PMI and keeps DTI healthy at 26.5%. At current savings rate, 20% down is ~9 years away — unless income grows or you add a side hustle.</div>
+            </div>
+            <div id="scenario-aggressive" class="scenario-panel" style="display:none">
+                <div class="grid3">
+                    <div class="summary-card"><h4>Savings Rate</h4><div class="value" style="color:#10b981">40%</div></div>
+                    <div class="summary-card"><h4>Monthly Savings</h4><div class="value" style="color:#10b981">$2,500</div></div>
+                    <div class="summary-card"><h4>Sacrifice</h4><div class="value" style="color:#f59e0b">$1,125/mo</div></div>
+                </div>
+                <div class="callout">
+                    <strong>What Changes:</strong><br>
+                    • Cut dining: $350 → $100 (-$250)<br>
+                    • Cut shopping: $250 → $100 (-$150)<br>
+                    • Cut misc: $210 → $60 (-$150)<br>
+                    • Drop gym to $30/mo Planet Fitness (-$50)<br>
+                    • Cancel some subscriptions (-$25)<br>
+                    • Reduce groceries: $500 → $400 (-$100)<br>
+                    <strong>= $725 freed up + $400 from buffer → $1,125 extra/mo invested</strong>
+                </div>
+                <div class="callout-success"><strong>Result:</strong> $2,500/mo invested total. At 8% returns, you'd have $1.05M by age 45 (FIRE territory). Emergency fund full in 5 months. Credit cards gone in 2 months. Down payment in 4 years.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TAB 11: FINANCIAL SCORECARD -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="scorecard" class="panel">
+        <div class="card">
+            <h2>Financial Health Scorecard</h2>
+            <div class="metric-row" style="margin-bottom:20px">
+                <div class="metric" style="border-color:#3b82f6;text-align:center">
+                    <div class="metric-label">Overall Grade</div>
+                    <div style="font-size:3rem;font-weight:700;color:#3b82f6">B</div>
+                    <div style="font-size:.8rem;color:#94a3b8">Solid foundation, room to optimize</div>
+                </div>
+            </div>
+
+            <div class="scorecard-grid">
+                <div class="scorecard-item">
+                    <h4>Savings Rate</h4>
+                    <div class="grade a">A</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">22% of take-home</div>
+                    <div class="grade-detail">Above the 20% benchmark. Investing across 401(k), Roth IRA, and brokerage. Excellent diversification of account types.</div>
+                </div>
+                <div class="scorecard-item">
+                    <h4>Emergency Fund</h4>
+                    <div class="grade c">C+</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">3.2 months of expenses</div>
+                    <div class="grade-detail">Target is 6 months ($23,250). Currently at $12,500. Good start but needs to be prioritized after CC payoff.</div>
+                </div>
+                <div class="scorecard-item">
+                    <h4>Debt-to-Income</h4>
+                    <div class="grade b">B</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">17.8% DTI</div>
+                    <div class="grade-detail">$1,110/mo in debt payments on $6,250 take-home. Below the 20% threshold. Credit cards are the weak spot — high interest eating into returns.</div>
+                </div>
+                <div class="scorecard-item">
+                    <h4>Investment Diversification</h4>
+                    <div class="grade a">A-</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">4 account types, 10+ holdings</div>
+                    <div class="grade-detail">Good mix: tax-deferred (401k), tax-free (Roth), taxable (brokerage), and crypto. Consider adding international exposure.</div>
+                </div>
+                <div class="scorecard-item">
+                    <h4>Housing Cost</h4>
+                    <div class="grade a">A</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">21.6% of take-home</div>
+                    <div class="grade-detail">Well under the 28% guideline for housing. Renting keeps flexibility high. Smart while building emergency fund and paying down debt.</div>
+                </div>
+                <div class="scorecard-item">
+                    <h4>Retirement Progress</h4>
+                    <div class="grade b">B+</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">$46,700 at age 30</div>
+                    <div class="grade-detail">Rule of thumb: 1x salary by 30. At $46.7K, you're close. On track for $2.1M+ by 65. Employer match fully captured.</div>
+                </div>
+                <div class="scorecard-item">
+                    <h4>Net Worth Trajectory</h4>
+                    <div class="grade a">A</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">+$18.2K YTD</div>
+                    <div class="grade-detail">Positive and accelerating. Net worth growing at ~$1,500/mo from savings + investment growth. Should cross $100K within 18 months.</div>
+                </div>
+                <div class="scorecard-item">
+                    <h4>High-Interest Debt</h4>
+                    <div class="grade c">C</div>
+                    <div style="font-size:1.1rem;color:#f1f5f9">$4,000 at 20%+ APR</div>
+                    <div class="grade-detail">Credit cards are the biggest financial drag. Every $1,000 on a 22% card costs $220/yr in interest. Priority #1 is eliminating these by September.</div>
+                </div>
+            </div>
+
+            <div class="callout" style="margin-top:16px">
+                <strong>Top 3 Actions to Improve Your Score:</strong><br>
+                1. Kill the $4,000 in credit card debt by September (saves $880+/yr in interest)<br>
+                2. Build emergency fund to 6 months ($10,750 more needed)<br>
+                3. Consider maxing Roth IRA ($7K/yr) — currently only contributing $3,500/yr
+            </div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<script>
+// ─── Tab switching ───
+function showTab(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+    // Trigger chart redraws for visible canvases
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+}
+
+// ─── Scenario switching ───
+function showScenario(id) {
+    document.querySelectorAll('.scenario-panel').forEach(p => p.style.display='none');
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('scenario-'+id).style.display='block';
+    event.target.classList.add('active');
+}
+
+// ─── Chart defaults ───
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#334155';
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+const chartBg = ['#3b82f6','#10b981','#f59e0b','#ef4444','#a855f7','#06b6d4','#f97316','#ec4899','#6366f1','#14b8a6'];
+
+// ═══ OVERVIEW: Net Worth Trend ═══
+new Chart(document.getElementById('nwTrendChart'), {
+    type: 'line',
+    data: {
+        labels: ['Apr 25','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan 26','Feb','Mar'],
+        datasets: [{
+            label: 'Net Worth',
+            data: [29150,30800,32500,34100,35900,37200,39000,40800,42500,44100,45800,47350],
+            borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+});
+
+// ═══ OVERVIEW: Spending vs Income ═══
+new Chart(document.getElementById('overviewSpendChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Oct','Nov','Dec','Jan','Feb','Mar'],
+        datasets: [
+            {label:'Take-Home', data:[6250,6250,6250,6250,6250,6250], backgroundColor:'#3b82f6'},
+            {label:'Total Spending', data:[3950,4200,4800,3700,3850,3875], backgroundColor:'#ef4444'}
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+});
+
+// ═══ OVERVIEW: Asset Allocation ═══
+new Chart(document.getElementById('overviewAllocChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['401(k)','Roth IRA','Brokerage','Crypto','Cash','Car'],
+        datasets: [{data:[32500,14200,8150,7500,15700,7500], backgroundColor:chartBg}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'right'}} }
+});
+
+// ═══ INCOME: Tax breakdown ═══
+new Chart(document.getElementById('taxChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Take-Home','Federal Tax','FICA','Health Benefits'],
+        datasets: [{data:[75000,14260,7650,3090], backgroundColor:['#10b981','#ef4444','#f59e0b','#3b82f6']}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'bottom'}} }
+});
+
+// ═══ SPENDING: Pie ═══
+new Chart(document.getElementById('spendPie'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Rent','Car Payment','Car Insurance','Utilities','Phone','Gym','Subs','Pet Ins','Renters Ins','Groceries','Dining','Gas','Shopping','Misc'],
+        datasets: [{data:[1350,420,165,210,85,80,45,40,20,500,350,150,250,210], backgroundColor:['#3b82f6','#10b981','#06b6d4','#f59e0b','#a855f7','#ec4899','#f97316','#14b8a6','#6366f1','#84cc16','#ef4444','#d97706','#e879f9','#94a3b8']}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'right',labels:{font:{size:10}}}} }
+});
+
+// ═══ SPENDING: Bar ═══
+new Chart(document.getElementById('spendBar'), {
+    type: 'bar',
+    data: {
+        labels: ['Rent','Groceries','Car','Dining','Shopping','Utils','Misc','Gas','Ins','Phone','Gym','Subs','Pet','Renters'],
+        datasets: [{label:'Monthly',data:[1350,500,420,350,250,210,210,150,165,85,80,45,40,20],backgroundColor:chartBg.concat(chartBg)}]
+    },
+    options: { indexAxis:'y', responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{ticks:{callback:v=>'$'+v}}} }
+});
+
+// ═══ BILLS: Donut ═══
+new Chart(document.getElementById('billsDonut'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Rent','Car Payment','Utilities','Car Insurance','Phone','Gym','Subscriptions','Pet Insurance','Renters Ins'],
+        datasets: [{data:[1350,420,210,165,85,80,45,40,20], backgroundColor:chartBg}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'right'}} }
+});
+
+// ═══ INVESTMENTS: Allocation ═══
+new Chart(document.getElementById('investAllocChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['401(k)','Roth IRA','Brokerage','Crypto'],
+        datasets: [{data:[32500,14200,8150,7500], backgroundColor:['#3b82f6','#10b981','#f59e0b','#a855f7']}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'bottom'}} }
+});
+
+// ═══ INVESTMENTS: Growth ═══
+new Chart(document.getElementById('investGrowthChart'), {
+    type: 'line',
+    data: {
+        labels: ['2023','Mid 23','2024','Mid 24','2025','Mid 25','2026'],
+        datasets: [
+            {label:'401(k)', data:[8000,12000,16500,21000,25500,29000,32500], borderColor:'#3b82f6', fill:false, tension:0.3},
+            {label:'Roth IRA', data:[2000,4000,6500,8500,10800,12500,14200], borderColor:'#10b981', fill:false, tension:0.3},
+            {label:'Brokerage', data:[0,500,1500,3000,5000,6500,8150], borderColor:'#f59e0b', fill:false, tension:0.3},
+            {label:'Crypto', data:[2000,3500,4000,5500,6200,7000,7500], borderColor:'#a855f7', fill:false, tension:0.3}
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+});
+
+// ═══ NET WORTH: Pie ═══
+new Chart(document.getElementById('nwPieChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Cash','401(k)','Roth IRA','Brokerage','Crypto','Car','Student Loans','Car Loan','Credit Cards'],
+        datasets: [{data:[15700,32500,14200,8150,7500,7500,-18400,-15800,-4000], backgroundColor:['#3b82f6','#06b6d4','#10b981','#f59e0b','#a855f7','#14b8a6','#ef4444','#f97316','#ec4899'].map((c,i)=>i>=6?c+'99':c)}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'right',labels:{font:{size:10}}}} }
+});
+
+// ═══ NET WORTH: Assets vs Liabilities bar ═══
+new Chart(document.getElementById('nwAssetsLiab'), {
+    type: 'bar',
+    data: {
+        labels: ['Assets','Liabilities','Net Worth'],
+        datasets: [{data:[85550,38200,47350], backgroundColor:['#10b981','#ef4444','#3b82f6']}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+});
+
+// ═══ DEBT: Payoff timeline ═══
+new Chart(document.getElementById('debtChart'), {
+    type: 'line',
+    data: {
+        labels: ['Mar 26','Jun','Sep','Dec','Mar 27','Jun','Sep','Dec','Mar 28','Jun','Sep','Dec','Mar 29','Jun','Sep','Oct 29'],
+        datasets: [
+            {label:'Credit Cards', data:[4000,2800,0,0,0,0,0,0,0,0,0,0,0,0,0,0], borderColor:'#ef4444', fill:false, tension:0.2},
+            {label:'Car Loan', data:[15800,14600,13400,12200,11000,9800,8600,7400,6200,5000,3800,2600,1400,200,0,0], borderColor:'#3b82f6', fill:false, tension:0.2},
+            {label:'Student Loans', data:[18400,17350,16300,15250,14200,13150,12100,11050,10000,8950,7900,6850,5800,4750,3700,2650], borderColor:'#f59e0b', fill:false, tension:0.2},
+            {label:'Total', data:[38200,34750,29700,27450,25200,22950,20700,18450,16200,13950,11700,9450,7200,4950,3700,2650], borderColor:'#a855f7', borderDash:[5,5], fill:false, tension:0.2}
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+});
+
+// ═══ GOALS: Bar chart ═══
+new Chart(document.getElementById('goalsChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Emergency Fund','House Down Payment','Roth IRA 2026','Vacation Fund','CC Payoff'],
+        datasets: [
+            {label:'Saved', data:[12500,12500,876,1800,11000], backgroundColor:'#10b981'},
+            {label:'Remaining', data:[10750,57500,2624,3200,4000], backgroundColor:'#334155'}
+        ]
+    },
+    options: { indexAxis:'y', responsive: true, maintainAspectRatio: false, scales:{x:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}},y:{stacked:true}} }
+});
+
+// ═══ RETIREMENT: Projection ═══
+const retireLabels = [];
+const retire7 = [];
+const retire9 = [];
+for (let age = 30; age <= 65; age += 5) {
+    retireLabels.push('Age '+age);
+    const years = age - 30;
+    retire7.push(Math.round(46700 * Math.pow(1.07, years) + 13500 * ((Math.pow(1.07, years) - 1) / 0.07)));
+    retire9.push(Math.round(46700 * Math.pow(1.09, years) + 13500 * ((Math.pow(1.09, years) - 1) / 0.09)));
+}
+new Chart(document.getElementById('retireChart'), {
+    type: 'line',
+    data: {
+        labels: retireLabels,
+        datasets: [
+            {label:'7% Return', data:retire7, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)', fill:true, tension:0.3},
+            {label:'9% Return', data:retire9, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)', fill:true, tension:0.3}
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales:{y:{ticks:{callback:v=>'$'+(v/1000000).toFixed(1)+'M'}}} }
+});
+
+// ═══ RETIREMENT: Split ═══
+new Chart(document.getElementById('retireSplitChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['401(k) (Tax-Deferred)','Roth IRA (Tax-Free)'],
+        datasets: [{data:[32500,14200], backgroundColor:['#3b82f6','#10b981']}]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'bottom'}} }
+});
+
+// ═══ SCENARIOS: Raise chart ═══
+new Chart(document.getElementById('scenarioChart1'), {
+    type: 'bar',
+    data: {
+        labels: ['Current ($100K)','With Raise ($120K)'],
+        datasets: [
+            {label:'Monthly Savings', data:[1375,2475], backgroundColor:['#3b82f6','#10b981']},
+            {label:'Monthly Spending', data:[3875,3875], backgroundColor:['#f59e0b','#f59e0b']}
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+});
+
+// ═══ SCENARIOS: Side hustle chart ═══
+new Chart(document.getElementById('scenarioChart2'), {
+    type: 'bar',
+    data: {
+        labels: ['Current','+ Side Hustle'],
+        datasets: [
+            {label:'Monthly Income', data:[6250,7187], backgroundColor:['#3b82f6','#10b981']},
+            {label:'Savings Capacity', data:[1375,2312], backgroundColor:['#6366f1','#a855f7']}
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Property Investment Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #e2e8f0;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95em;
+            font-style: italic;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #334155;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            color: #e2e8f0;
+        }
+
+        .tab-button.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .kpi-label {
+            color: #94a3b8;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        .kpi-secondary {
+            color: #10b981;
+            font-size: 1em;
+            margin-top: 8px;
+        }
+
+        .chart-container {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 40px;
+            position: relative;
+            height: 400px;
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        th {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #334155;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #e2e8f0;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: #0f172a;
+        }
+
+        .positive {
+            color: #10b981;
+        }
+
+        .negative {
+            color: #ef4444;
+        }
+
+        .neutral {
+            color: #94a3b8;
+        }
+
+        .property-details {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-item {
+            padding: 15px;
+            background: #0f172a;
+            border-radius: 4px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .detail-label {
+            color: #94a3b8;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #e2e8f0;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .photo-placeholder {
+            background: #1e293b;
+            border: 2px dashed #334155;
+            border-radius: 8px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            margin-bottom: 40px;
+        }
+
+        button.scenario-toggle {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        button.scenario-toggle:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        button.scenario-toggle.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .risk-item {
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .risk-low {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: #10b981;
+        }
+
+        .risk-medium {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+        }
+
+        .risk-high {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+        }
+
+        .risk-title {
+            color: #e2e8f0;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .risk-description {
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+
+        .waterfall-labels {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .waterfall-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .waterfall-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            color: #e2e8f0;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9em;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Rental Property Investment Dashboard</h1>
+            <p class="subtitle">Hypothetical Duplex Investment — Built by Claude Cowork from a single prompt</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('overview')">Property Overview</button>
+            <button class="tab-button" onclick="showTab('cashflow')">Cash Flow Analysis</button>
+            <button class="tab-button" onclick="showTab('financing')">Financing Scenarios</button>
+            <button class="tab-button" onclick="showTab('projection')">5-Year Projection</button>
+            <button class="tab-button" onclick="showTab('comparison')">Buy vs Rent</button>
+            <button class="tab-button" onclick="showTab('risk')">Risk Analysis</button>
+        </div>
+
+        <!-- PROPERTY OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Purchase Price</div>
+                    <div class="kpi-value">$400,000</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Down Payment (20%)</div>
+                    <div class="kpi-value">$80,000</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Loan Amount</div>
+                    <div class="kpi-value">$320,000</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Monthly PITI</div>
+                    <div class="kpi-value">$2,380</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Cap Rate</div>
+                    <div class="kpi-value">6.8%</div>
+                    <div class="kpi-secondary">Annual NOI: $27,200</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Cash-on-Cash Return</div>
+                    <div class="kpi-value">9.2%</div>
+                    <div class="kpi-secondary">Annual Return: $7,360</div>
+                </div>
+            </div>
+
+            <div class="section-title">Property Details</div>
+            <div class="property-details">
+                <div class="property-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Property Type</div>
+                        <div class="detail-value">Duplex</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Unit A Configuration</div>
+                        <div class="detail-value">2 BR / 1 BA</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Unit B Configuration</div>
+                        <div class="detail-value">2 BR / 1 BA</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Year Built</div>
+                        <div class="detail-value">2005</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Total Square Footage</div>
+                        <div class="detail-value">2,400 sqft</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Lot Size</div>
+                        <div class="detail-value">0.18 acres</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Zestimate</div>
+                        <div class="detail-value">$415,000</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Equity Build Year 1</div>
+                        <div class="detail-value">$9,280</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-placeholder">
+                <div>📷 Property Photos Placeholder</div>
+            </div>
+        </div>
+
+        <!-- CASH FLOW ANALYSIS TAB -->
+        <div id="cashflow" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Monthly Gross Income</div>
+                    <div class="kpi-value">$2,800</div>
+                    <div class="kpi-secondary">Unit A: $1,450 + Unit B: $1,350</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Monthly Expenses</div>
+                    <div class="kpi-value">$2,731</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Monthly Cash Flow</div>
+                    <div class="kpi-value positive">+$69</div>
+                    <div class="kpi-secondary">Annual: $828</div>
+                </div>
+            </div>
+
+            <div class="section-title">Monthly Income & Expenses Breakdown</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>% of Gross</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Gross Rental Income</strong></td>
+                        <td colspan="2" style="color: #10b981; font-weight: 600;">$2,800.00</td>
+                    </tr>
+                    <tr>
+                        <td>Mortgage (P&I)</td>
+                        <td>$1,520.00</td>
+                        <td>54.3%</td>
+                    </tr>
+                    <tr>
+                        <td>Property Tax</td>
+                        <td>$417.00</td>
+                        <td>14.9%</td>
+                    </tr>
+                    <tr>
+                        <td>Insurance</td>
+                        <td>$150.00</td>
+                        <td>5.4%</td>
+                    </tr>
+                    <tr>
+                        <td>HOA Fees</td>
+                        <td>$0.00</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td>Maintenance Reserve (10%)</td>
+                        <td>$280.00</td>
+                        <td>10%</td>
+                    </tr>
+                    <tr>
+                        <td>Vacancy Reserve (5%)</td>
+                        <td>$140.00</td>
+                        <td>5%</td>
+                    </tr>
+                    <tr>
+                        <td>Property Management (8%)</td>
+                        <td>$224.00</td>
+                        <td>8%</td>
+                    </tr>
+                    <tr style="background: #0f172a; font-weight: 600;">
+                        <td><strong>Total Expenses</strong></td>
+                        <td colspan="2" style="color: #ef4444;">$2,731.00 (97.5%)</td>
+                    </tr>
+                    <tr style="background: #0f172a; font-weight: 600;">
+                        <td><strong>Net Monthly Cash Flow</strong></td>
+                        <td colspan="2" style="color: #10b981;">+$69.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="section-title">Income to Cash Flow Waterfall</div>
+            <div class="waterfall-labels">
+                <div class="waterfall-item">
+                    <div class="waterfall-color" style="background: #3b82f6;"></div>
+                    <span>Gross Income</span>
+                </div>
+                <div class="waterfall-item">
+                    <div class="waterfall-color" style="background: #ef4444;"></div>
+                    <span>Expenses</span>
+                </div>
+                <div class="waterfall-item">
+                    <div class="waterfall-color" style="background: #10b981;"></div>
+                    <span>Cash Flow</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="waterfallChart"></canvas>
+            </div>
+
+            <div class="section-title">12-Month Cash Flow Projection</div>
+            <div class="chart-container">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- FINANCING SCENARIOS TAB -->
+        <div id="financing" class="tab-content">
+            <div class="section-title">Down Payment Comparison</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Down Payment</th>
+                        <th>Loan Amount</th>
+                        <th>Interest Rate</th>
+                        <th>Monthly P&I</th>
+                        <th>PMI</th>
+                        <th>Total Monthly</th>
+                        <th>Cash-on-Cash</th>
+                        <th>Break-Even (mo)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>20% Down (Conventional)</strong></td>
+                        <td>$80,000</td>
+                        <td>$320,000</td>
+                        <td>6.5%</td>
+                        <td>$2,027</td>
+                        <td>$0</td>
+                        <td>$2,594</td>
+                        <td class="positive">9.2%</td>
+                        <td>138</td>
+                    </tr>
+                    <tr>
+                        <td><strong>25% Down (Conventional)</strong></td>
+                        <td>$100,000</td>
+                        <td>$300,000</td>
+                        <td>6.4%</td>
+                        <td>$1,897</td>
+                        <td>$0</td>
+                        <td>$2,464</td>
+                        <td class="positive">13.4%</td>
+                        <td>89</td>
+                    </tr>
+                    <tr>
+                        <td><strong>15% Down (FHA)</strong></td>
+                        <td>$60,000</td>
+                        <td>$340,000</td>
+                        <td>6.8%</td>
+                        <td>$2,272</td>
+                        <td>$306</td>
+                        <td>$2,811</td>
+                        <td class="negative">5.2%</td>
+                        <td>211</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="section-title">Total Monthly Costs Comparison</div>
+            <div class="chart-container">
+                <canvas id="scenarioChart"></canvas>
+            </div>
+
+            <p style="color: #94a3b8; margin-top: 20px; font-style: italic;">
+                Note: Adjustable-rate mortgages (ARMs) typically offer lower initial rates (5.5-6.2%) but may increase 1-2% after the initial fixed period. Stress-test scenarios should assume rate increases to 7-8% for long-term planning.
+            </p>
+        </div>
+
+        <!-- 5-YEAR PROJECTION TAB -->
+        <div id="projection" class="tab-content">
+            <div class="section-title">Year-by-Year Financial Projection</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Property Value</th>
+                        <th>Loan Balance</th>
+                        <th>Equity</th>
+                        <th>Annual Cash Flow</th>
+                        <th>Cumulative Cash Flow</th>
+                        <th>Total Return</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Year 0 (Start)</strong></td>
+                        <td>$400,000</td>
+                        <td>$320,000</td>
+                        <td>$80,000</td>
+                        <td>—</td>
+                        <td>$0</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Year 1</strong></td>
+                        <td>$416,000</td>
+                        <td>$310,720</td>
+                        <td>$105,280</td>
+                        <td>$828</td>
+                        <td>$828</td>
+                        <td class="positive">$25,280 (31.6%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Year 2</strong></td>
+                        <td>$432,640</td>
+                        <td>$301,051</td>
+                        <td>$131,589</td>
+                        <td>$853</td>
+                        <td>$1,681</td>
+                        <td class="positive">$51,589 (64.4%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Year 3</strong></td>
+                        <td>$450,146</td>
+                        <td>$290,943</td>
+                        <td>$159,203</td>
+                        <td>$879</td>
+                        <td>$2,560</td>
+                        <td class="positive">$79,203 (99.0%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Year 4</strong></td>
+                        <td>$468,551</td>
+                        <td>$280,362</td>
+                        <td>$188,189</td>
+                        <td>$906</td>
+                        <td>$3,466</td>
+                        <td class="positive">$108,189 (135.2%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Year 5</strong></td>
+                        <td>$487,894</td>
+                        <td>$269,262</td>
+                        <td>$218,632</td>
+                        <td>$933</td>
+                        <td>$4,399</td>
+                        <td class="positive">$138,632 (173.3%)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="color: #94a3b8; margin-top: 15px; font-size: 0.9em;">
+                <strong>Assumptions:</strong> Rent growth 3%/year, expense growth 2%/year, property appreciation 4%/year, 6.5% mortgage rate over 30 years.
+            </p>
+
+            <div class="section-title">Equity Growth & Cumulative Cash Flow</div>
+            <div class="chart-container">
+                <canvas id="equityChart"></canvas>
+            </div>
+
+            <div class="section-title">Year-over-Year ROI</div>
+            <div class="chart-container">
+                <canvas id="roiChart"></canvas>
+            </div>
+        </div>
+
+        <!-- BUY VS RENT COMPARISON TAB -->
+        <div id="comparison" class="tab-content">
+            <div class="section-title">Buy vs Rent: Net Worth Impact</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time Horizon</th>
+                        <th>Buy (Duplex)</th>
+                        <th>Rent + S&P 500</th>
+                        <th>Difference</th>
+                        <th>Winner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>5 Years</strong></td>
+                        <td class="positive">$218,632</td>
+                        <td class="positive">$129,106</td>
+                        <td class="positive">+$89,526</td>
+                        <td>Buy</td>
+                    </tr>
+                    <tr>
+                        <td><strong>10 Years</strong></td>
+                        <td class="positive">$465,384</td>
+                        <td class="positive">$327,590</td>
+                        <td class="positive">+$137,794</td>
+                        <td>Buy</td>
+                    </tr>
+                    <tr>
+                        <td><strong>15 Years</strong></td>
+                        <td class="positive">$756,892</td>
+                        <td class="positive">$638,150</td>
+                        <td class="positive">+$118,742</td>
+                        <td>Buy</td>
+                    </tr>
+                    <tr>
+                        <td><strong>20 Years</strong></td>
+                        <td class="positive">$1,087,456</td>
+                        <td class="positive">$1,148,780</td>
+                        <td class="negative">-$61,324</td>
+                        <td>Rent</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="color: #94a3b8; margin-top: 15px; font-size: 0.9em;">
+                <strong>Key Factors:</strong> Buy scenario includes $4,200/year tax deduction benefit, 4% appreciation, and equity build from mortgage paydown. Rent scenario assumes $2,000/month rent (vs $1,400 buying), invested at 10% annual return in S&P 500.
+            </p>
+
+            <div class="section-title">Net Worth Comparison Over Time</div>
+            <div class="chart-container">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+
+            <div class="section-title">Tax Benefits of Ownership</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tax Benefit</th>
+                        <th>Year 1</th>
+                        <th>Annual Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Mortgage Interest Deduction (Year 1)</td>
+                        <td>$20,667</td>
+                        <td>$5,466 @ 26.4% rate</td>
+                    </tr>
+                    <tr>
+                        <td>Property Tax Deduction</td>
+                        <td>$5,004</td>
+                        <td>$1,321 @ 26.4% rate</td>
+                    </tr>
+                    <tr>
+                        <td>Depreciation Deduction (27.5 yr)</td>
+                        <td>$10,909</td>
+                        <td>$2,880 @ 26.4% rate</td>
+                    </tr>
+                    <tr style="background: #0f172a; font-weight: 600;">
+                        <td><strong>Total Year 1 Tax Benefit</strong></td>
+                        <td colspan="2" class="positive">$9,667</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- RISK ANALYSIS TAB -->
+        <div id="risk" class="tab-content">
+            <div class="section-title">Stress Test Scenarios</div>
+            <p style="color: #94a3b8; margin-bottom: 20px;">Click scenario buttons below to see impact on cash flow and ROI:</p>
+
+            <div>
+                <button class="scenario-toggle" onclick="toggleScenario(0)">Vacancy 15%</button>
+                <button class="scenario-toggle" onclick="toggleScenario(1)">Rate: 8%</button>
+                <button class="scenario-toggle" onclick="toggleScenario(2)">Market -10%</button>
+                <button class="scenario-toggle" onclick="toggleScenario(3)">Roof Repair $15K</button>
+            </div>
+
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Monthly Cash Flow</th>
+                        <th>Annual Impact</th>
+                        <th>Year 5 Equity</th>
+                        <th>Cash-on-Cash ROI</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="scenario-base">
+                        <td><strong>Base Case (5% Vacancy)</strong></td>
+                        <td class="positive">+$69</td>
+                        <td class="positive">+$828</td>
+                        <td class="positive">$218,632</td>
+                        <td class="positive">9.2%</td>
+                        <td><span style="background: rgba(16, 185, 129, 0.3); padding: 4px 12px; border-radius: 4px; color: #10b981;">Low</span></td>
+                    </tr>
+                    <tr id="scenario-0" style="display:none;">
+                        <td><strong>Vacancy Rises to 15%</strong></td>
+                        <td class="negative">-$210</td>
+                        <td class="negative">-$2,520</td>
+                        <td class="negative">$212,012</td>
+                        <td class="negative">2.6%</td>
+                        <td><span style="background: rgba(245, 158, 11, 0.3); padding: 4px 12px; border-radius: 4px; color: #f59e0b;">Medium</span></td>
+                    </tr>
+                    <tr id="scenario-1" style="display:none;">
+                        <td><strong>Interest Rate: 8%</strong></td>
+                        <td class="negative">-$97</td>
+                        <td class="negative">-$1,164</td>
+                        <td class="positive">$216,928</td>
+                        <td class="negative">3.9%</td>
+                        <td><span style="background: rgba(245, 158, 11, 0.3); padding: 4px 12px; border-radius: 4px; color: #f59e0b;">Medium</span></td>
+                    </tr>
+                    <tr id="scenario-2" style="display:none;">
+                        <td><strong>Market Value -10%</strong></td>
+                        <td class="positive">+$69</td>
+                        <td class="positive">+$828</td>
+                        <td class="negative">$178,469</td>
+                        <td class="positive">9.2%</td>
+                        <td><span style="background: rgba(245, 158, 11, 0.3); padding: 4px 12px; border-radius: 4px; color: #f59e0b;">Medium</span></td>
+                    </tr>
+                    <tr id="scenario-3" style="display:none;">
+                        <td><strong>Major Repair: $15K Roof</strong></td>
+                        <td class="negative">-$255</td>
+                        <td class="negative">-$3,060</td>
+                        <td class="positive">$205,412</td>
+                        <td class="negative">0.9%</td>
+                        <td><span style="background: rgba(239, 68, 68, 0.3); padding: 4px 12px; border-radius: 4px; color: #ef4444;">High</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="section-title">Risk Assessment Matrix</div>
+            <div class="risk-matrix">
+                <div class="risk-item risk-low">
+                    <div class="risk-title">Low Risk: 5% Probability</div>
+                    <div class="risk-description">Property appreciation exceeds projections; tenants long-term and reliable; no major repairs needed</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-title">Medium Risk: 60% Probability</div>
+                    <div class="risk-description">Vacancy increases to 10-15%; market appreciation 2-3%; interest rate environment shifts; typical maintenance costs arise</div>
+                </div>
+                <div class="risk-item risk-high">
+                    <div class="risk-title">High Risk: 35% Probability</div>
+                    <div class="risk-description">Major structural repairs; market downturn 10%+; sustained high vacancy; economic recession impacts tenant quality</div>
+                </div>
+            </div>
+
+            <div class="section-title">Stress Test: Monthly Cash Flow Impact</div>
+            <div class="chart-container">
+                <canvas id="stressChart"></canvas>
+            </div>
+
+            <div class="section-title">Mitigation Strategies</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Risk</th>
+                        <th>Mitigation Strategy</th>
+                        <th>Cost / Effort</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Vacancy Risk</td>
+                        <td>Maintain property well; offer competitive rent; screen tenants carefully; consider shorter lease terms</td>
+                        <td>Low / Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Interest Rate Risk</td>
+                        <td>Lock in fixed rate; consider rate buydown; maintain rate sensitivity in projections</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Maintenance Risk</td>
+                        <td>Comprehensive property inspection; maintain reserve fund; plan major repairs in advance</td>
+                        <td>Medium / High</td>
+                    </tr>
+                    <tr>
+                        <td>Market Risk</td>
+                        <td>Long-term holding period (15+ years); geographic diversification; focus on value-add improvements</td>
+                        <td>Low / Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Liquidity Risk</td>
+                        <td>Keep 6-12 months expenses in reserve; establish HELOC; maintain emergency fund</td>
+                        <td>Medium</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>This is a hypothetical investment scenario for educational purposes. Actual results will vary based on market conditions, property-specific factors, financing terms, and tax situations. Consult with a financial advisor, tax professional, and real estate expert before making investment decisions.</p>
+        </div>
+    </div>
+
+    <script>
+        // Tab Navigation
+        function showTab(tabName) {
+            // Hide all tab content
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+
+            // Initialize charts for the tab
+            setTimeout(() => {
+                if (tabName === 'cashflow') initCashFlowCharts();
+                if (tabName === 'financing') initFinancingCharts();
+                if (tabName === 'projection') initProjectionCharts();
+                if (tabName === 'comparison') initComparisonCharts();
+                if (tabName === 'risk') initRiskCharts();
+            }, 100);
+        }
+
+        // Scenario Toggle
+        let activeScenarios = [];
+        function toggleScenario(index) {
+            const btn = event.target;
+            btn.classList.toggle('active');
+
+            if (activeScenarios.includes(index)) {
+                activeScenarios = activeScenarios.filter(s => s !== index);
+                document.getElementById(`scenario-${index}`).style.display = 'none';
+            } else {
+                activeScenarios.push(index);
+                document.getElementById(`scenario-${index}`).style.display = 'table-row';
+            }
+        }
+
+        // Chart configurations
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#e2e8f0', font: { size: 12 } }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#e2e8f0',
+                    bodyColor: '#e2e8f0',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: '#334155' }
+                },
+                y: {
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: '#334155' }
+                }
+            }
+        };
+
+        // Cash Flow Charts
+        function initCashFlowCharts() {
+            // Waterfall Chart
+            const waterfallCtx = document.getElementById('waterfallChart');
+            if (waterfallCtx && !waterfallCtx.waterfall) {
+                new Chart(waterfallCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Gross Income', 'Expenses', 'Net Cash Flow'],
+                        datasets: [{
+                            label: 'Amount ($)',
+                            data: [2800, -2731, 69],
+                            backgroundColor: ['#3b82f6', '#ef4444', '#10b981'],
+                            borderColor: ['#3b82f6', '#ef4444', '#10b981'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        indexAxis: 'x',
+                        plugins: {
+                            ...chartDefaults.plugins,
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ...chartDefaults.scales.y,
+                                ticks: {
+                                    ...chartDefaults.scales.y.ticks,
+                                    callback: function(value) { return '$' + value.toLocaleString(); }
+                                }
+                            }
+                        }
+                    }
+                });
+                waterfallCtx.waterfall = true;
+            }
+
+            // Monthly Cash Flow Chart
+            const monthlyCtx = document.getElementById('monthlyChart');
+            if (monthlyCtx && !monthlyCtx.monthly) {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const cashFlows = [69, 72, 65, 71, 68, 85, 92, 88, 75, 66, 58, 45];
+
+                new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Monthly Cash Flow',
+                            data: cashFlows,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#10b981',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            y: {
+                                ...chartDefaults.scales.y,
+                                ticks: {
+                                    callback: function(value) { return '$' + value; }
+                                }
+                            }
+                        }
+                    }
+                });
+                monthlyCtx.monthly = true;
+            }
+        }
+
+        // Financing Charts
+        function initFinancingCharts() {
+            const scenarioCtx = document.getElementById('scenarioChart');
+            if (scenarioCtx && !scenarioCtx.scenario) {
+                new Chart(scenarioCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['20% Down\n(Conventional)', '25% Down\n(Conventional)', '15% Down\n(FHA)'],
+                        datasets: [{
+                            label: 'Mortgage P&I',
+                            data: [2027, 1897, 2272],
+                            backgroundColor: '#3b82f6'
+                        }, {
+                            label: 'Taxes & Insurance',
+                            data: [567, 567, 567],
+                            backgroundColor: '#f59e0b'
+                        }, {
+                            label: 'PMI & Reserves',
+                            data: [0, 0, 306],
+                            backgroundColor: '#ef4444'
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            x: { stacked: false },
+                            y: {
+                                stacked: true,
+                                ticks: { callback: function(value) { return '$' + value; } }
+                            }
+                        }
+                    }
+                });
+                scenarioCtx.scenario = true;
+            }
+        }
+
+        // Projection Charts
+        function initProjectionCharts() {
+            // Equity Chart
+            const equityCtx = document.getElementById('equityChart');
+            if (equityCtx && !equityCtx.equity) {
+                new Chart(equityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Year 0', 'Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                        datasets: [{
+                            label: 'Total Equity',
+                            data: [80000, 105280, 131589, 159203, 188189, 218632],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#10b981',
+                            pointRadius: 6
+                        }, {
+                            label: 'Cumulative Cash Flow',
+                            data: [0, 828, 1681, 2560, 3466, 4399],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#3b82f6',
+                            pointRadius: 6
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            y: {
+                                ticks: { callback: function(value) { return '$' + (value / 1000).toFixed(0) + 'K'; } }
+                            }
+                        }
+                    }
+                });
+                equityCtx.equity = true;
+            }
+
+            // ROI Chart
+            const roiCtx = document.getElementById('roiChart');
+            if (roiCtx && !roiCtx.roi) {
+                new Chart(roiCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                        datasets: [{
+                            label: 'Return on Investment %',
+                            data: [31.6, 32.5, 33.1, 34.1, 35.2],
+                            backgroundColor: '#a855f7',
+                            borderColor: '#a855f7',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        plugins: {
+                            ...chartDefaults.plugins,
+                            legend: { display: true }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { callback: function(value) { return value.toFixed(1) + '%'; } }
+                            }
+                        }
+                    }
+                });
+                roiCtx.roi = true;
+            }
+        }
+
+        // Comparison Charts
+        function initComparisonCharts() {
+            const comparisonCtx = document.getElementById('comparisonChart');
+            if (comparisonCtx && !comparisonCtx.comparison) {
+                new Chart(comparisonCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['5 Yrs', '10 Yrs', '15 Yrs', '20 Yrs'],
+                        datasets: [{
+                            label: 'Buy Duplex',
+                            data: [218632, 465384, 756892, 1087456],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#10b981',
+                            pointRadius: 6
+                        }, {
+                            label: 'Rent + S&P 500 Index',
+                            data: [129106, 327590, 638150, 1148780],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#3b82f6',
+                            pointRadius: 6
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            y: {
+                                ticks: { callback: function(value) { return '$' + (value / 1000).toFixed(0) + 'K'; } }
+                            }
+                        }
+                    }
+                });
+                comparisonCtx.comparison = true;
+            }
+        }
+
+        // Risk Charts
+        function initRiskCharts() {
+            const stressCtx = document.getElementById('stressChart');
+            if (stressCtx && !stressCtx.stress) {
+                new Chart(stressCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Base Case', 'Vacancy 15%', 'Rate 8%', 'Market -10%', 'Roof $15K'],
+                        datasets: [{
+                            label: 'Monthly Cash Flow ($)',
+                            data: [69, -210, -97, 69, -255],
+                            backgroundColor: [
+                                '#10b981',
+                                '#ef4444',
+                                '#f59e0b',
+                                '#f59e0b',
+                                '#ef4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        plugins: {
+                            ...chartDefaults.plugins,
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { callback: function(value) { return '$' + value; } }
+                            }
+                        }
+                    }
+                });
+                stressCtx.stress = true;
+            }
+        }
+
+        // Initialize first tab charts on page load
+        window.addEventListener('load', function() {
+            initCashFlowCharts();
+        });
+    </script>
+</body>
+</html>

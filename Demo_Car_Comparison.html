@@ -465,10 +465,7 @@
             }
         }
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
+        /* old mobile query removed */
 
             .tabs {
                 flex-direction: column;
@@ -490,6 +487,147 @@
                 font-size: 0.8em;
             }
         }
+    
+
+/* ===== MOBILE RESPONSIVE FIXES ===== */
+@media (max-width: 768px) {
+  body { padding: 10px !important; font-size: 14px !important; }
+  .container { padding: 10px !important; }
+
+  /* Headers */
+  h1 { font-size: 1.4rem !important; line-height: 1.3 !important; }
+  h2 { font-size: 1.15rem !important; }
+  h3 { font-size: 1rem !important; }
+  .header h1 { font-size: 1.4rem !important; }
+  .header p, .subtitle, .tagline { font-size: 0.8rem !important; }
+  .header { margin-bottom: 16px !important; padding: 10px 0 !important; }
+  header { margin-bottom: 16px !important; }
+
+  /* Tabs — scrollable row with smaller buttons */
+  .tabs, .tab-bar, .tab-container {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 4px !important;
+    margin-bottom: 16px !important;
+    padding-bottom: 8px !important;
+    scrollbar-width: none !important;
+  }
+  .tabs::-webkit-scrollbar, .tab-bar::-webkit-scrollbar, .tab-container::-webkit-scrollbar { display: none; }
+  .tab-button, .tab-btn, .tab {
+    padding: 8px 12px !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-width: auto !important;
+  }
+
+  /* KPI grids — 2 columns on mobile */
+  .kpi-grid, .kpi-strip, .metric-row, .scorecard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  .kpi-card, .kpi-box, .kpi, .metric, .scorecard-item, .summary-card {
+    padding: 10px !important;
+  }
+  .kpi-value, .metric-value { font-size: 1.2rem !important; }
+  .kpi-label, .metric-label { font-size: 0.7rem !important; }
+  .kpi .val { font-size: 1.1rem !important; }
+  .kpi .label { font-size: 0.65rem !important; }
+  .summary-card .value { font-size: 1.3rem !important; }
+
+  /* Content grids — single column */
+  .grid2, .grid3, .grid4, .property-grid,
+  [style*="grid-template-columns: repeat(2"],
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns: repeat(4"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns: repeat(auto-fit"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Cards */
+  .card, .property-details, .detail-item, .holding-card, .goal-card, .debt-row {
+    padding: 12px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Tables — horizontal scroll */
+  table { display: block !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; white-space: nowrap !important; }
+  thead { display: table !important; width: 100% !important; }
+  tbody { display: table !important; width: 100% !important; }
+  tr { display: table-row !important; }
+  th, td { padding: 8px 10px !important; font-size: 0.75rem !important; min-width: 80px !important; }
+
+  /* Charts — responsive height */
+  .chart-container { height: 220px !important; padding: 10px !important; margin-bottom: 16px !important; }
+  canvas { max-height: 200px !important; }
+
+  /* Deal boards / Kanban — vertical stack */
+  .pipeline-board, .kanban-board, .board-container,
+  [class*="board"], [class*="pipeline"], [class*="kanban"] {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-x: visible !important;
+  }
+  .pipeline-column, .kanban-column, .board-column,
+  [class*="column"]:not(th):not(td) {
+    min-width: auto !important;
+    width: 100% !important;
+  }
+
+  /* Gantt / timeline horizontal scroll */
+  .gantt-container, .timeline-container, [class*="gantt"], [class*="timeline"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Waterfall chart */
+  .waterfall-chart { height: auto !important; min-height: 150px !important; flex-wrap: wrap !important; }
+  .waterfall-bar { min-width: 50px !important; font-size: 0.65rem !important; padding: 4px !important; }
+
+  /* Monthly timeline */
+  .monthly-timeline { overflow-x: auto !important; }
+  .month-col { min-width: 45px !important; font-size: 0.6rem !important; }
+
+  /* DTI gauge and progress bars */
+  .dti-gauge, .progress-bar { margin: 6px 0 !important; }
+
+  /* Grade display */
+  .grade { font-size: 1.8rem !important; }
+
+  /* Callouts */
+  .callout { padding: 10px !important; font-size: 0.8rem !important; margin: 10px 0 !important; }
+
+  /* Scenario toggles */
+  .scenario-toggle { flex-wrap: wrap !important; }
+  .scenario-btn { padding: 6px 12px !important; font-size: 0.8rem !important; }
+
+  /* Badge sizing */
+  .badge, .tag { font-size: 0.65rem !important; padding: 2px 5px !important; }
+
+  /* Flex row items */
+  .holding-card .row { flex-wrap: wrap !important; gap: 4px !important; }
+  .debt-row { flex-direction: column !important; align-items: flex-start !important; }
+  .debt-row .amount { text-align: left !important; min-width: auto !important; margin-top: 4px !important; }
+
+  /* KPI strip horizontal scroll variant */
+  .kpi-strip:not([style]) { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+}
+
+@media (max-width: 480px) {
+  body { padding: 8px !important; }
+  h1 { font-size: 1.2rem !important; }
+  .kpi-grid, .kpi-strip, .metric-row { grid-template-columns: 1fr !important; }
+  .tab-button, .tab-btn, .tab { padding: 6px 10px !important; font-size: 0.7rem !important; }
+  th, td { padding: 6px 8px !important; font-size: 0.7rem !important; }
+  .chart-container { height: 180px !important; }
+  canvas { max-height: 160px !important; }
+}
+
     </style>
 </head>
 <body>
